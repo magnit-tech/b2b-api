@@ -1,0 +1,3216 @@
+openapi: 3.0.1
+info:
+  title: Magnit B2B Platform API
+  description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
+  version: 0.1.10
+servers:
+  - url: https://b2b-api.magnit.ru/api
+    description: Основной стенд интеграции.
+  - url: https://b2b-api-gateway.uat.ecom.md.magnit.ru/api
+    description: Демо стенд для проведения тестирования процессинга заказов.
+tags:
+  - name: Auth
+    description: Аутентификация в системе
+  - name: Orders
+    description: Заказы
+  - name: Order Events
+    description: События по заказу от Партнера
+  - name: Nomenclature
+    description: Информация по товарам
+  - name: WebHookEvent
+    description: События от системы Магнит
+  - name: Last Mile
+    description: Услуга доставки от системы Магнит
+  - name: Magnit Post
+    description: Услуга доставки до ПВЗ
+
+paths:
+  /v1/oauth/token:
+    post:
+      deprecated: true
+      tags:
+        - Auth
+      summary: Получение токена авторизации
+      description: Поддержка будет прекращена 31 января 2025 года. Запросите новый токен 1 раз в 24 часа. Запрашивать токен перед каждым запросом к API-методам не требуется.
+      requestBody:
+        required: true
+        description: Запрос на получение токена
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        200:
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        400:
+          $ref: "#/components/responses/BadRequestErrorResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        500:
+          $ref: "#/components/responses/InternalServerErrorResponse"
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+  /v2/oauth/token:
+    post:
+      tags:
+        - Auth
+      summary: Получение аутентификационного токена
+      description: "Запросите новый токен 1 раз за 60 минут. Запрашивать токен перед каждым запросом к API-методам не требуется. Ссылка на полную спецификацию OAuth2 - https://tools.ietf.org/html/rfc6749"
+      requestBody:
+        $ref: '#/components/requestBodies/PostV2OauthTokenRequest'
+      responses:
+        200:
+          $ref: "#/components/responses/PostV2OauthSuccessResponse"
+        400:
+          description: Ошибка в параметрах, в ответе список ошибок валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OauthError'
+        401:
+          description: "Ошибка авторизации. В запросе не указан или указан несуществующий client_id"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OauthError'
+        500:
+          $ref: "#/components/responses/InternalServerErrorResponse"
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+
+  /v1/orders:
+    post:
+      tags:
+        - Orders
+      summary: Создание заказа
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        201:
+          $ref: "#/components/responses/OrderCreateResponse"
+        400:
+          $ref: "#/components/responses/BadRequestErrorResponse"
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        500:
+          $ref: "#/components/responses/InternalServerErrorResponse"
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+  /v1/orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Детальная информация о заказе
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+          example: "PM-bB00000001"
+          description: "Идентификатор заказа в системе Магнита"
+      responses:
+        200:
+          $ref: '#/components/responses/OrderResponse'
+        400:
+          $ref: '#/components/responses/BadRequestErrorResponse'
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        404:
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+  /v1/orders/{orderId}/cancel:
+    post:
+      tags:
+        - Orders
+      summary: Отмена заказа
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+          example: "PM-bB00000001"
+          description: "Идентификатор заказа в системе Магнита"
+      requestBody:
+        $ref: '#/components/requestBodies/OrderCancellationRequest'
+      responses:
+        200:
+          description: Запрос принят.
+        400:
+          $ref: '#/components/responses/BadRequestErrorResponse'
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        404:
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+  /v1/orders/{orderId}/status:
+    put:
+      tags:
+        - Orders
+      summary: Изменение статуса заказа
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+          example: "PM-bB00000001"
+          description: "Идентификатор заказа в системе Магнита"
+      requestBody:
+        $ref: '#/components/requestBodies/OrderChangeStatusRequest'
+      responses:
+        202:
+          description: Запрос обновления заказа принят, но ещё не обработан.
+        400:
+          $ref: '#/components/responses/BadRequestErrorResponse'
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        404:
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+    get:
+      tags:
+        - Orders
+      summary: Получение статуса заказа
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+          example: "PM-bB00000001"
+          description: "Идентификатор заказа в системе Магнита"
+      responses:
+        200:
+          $ref: '#/components/responses/OrderStatusResponse'
+        400:
+          $ref: '#/components/responses/BadRequestErrorResponse'
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        404:
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+  /v1/orders/{orderId}/event:
+    post:
+      tags:
+        - Order Events
+      summary: События по заказам от Партнера
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+          example: "PM-bB00000001"
+          description: "Идентификатор заказа в системе Магнита"
+      requestBody:
+        $ref: '#/components/requestBodies/OrderNotificationRequest'
+      responses:
+        202:
+          description: Запрос обновления заказа принят, но ещё не обработан.
+        400:
+          $ref: '#/components/responses/BadRequestErrorResponse'
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponse"
+        404:
+          $ref: '#/components/responses/NotFoundErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+
+  /v1/nomenclature/stores/{store_id}/prices:
+    get:
+      tags:
+        - Nomenclature
+      summary: "Информация по ценам товаров в ТО"
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: store_id
+          required: true
+          schema:
+            type: string
+          example: "123456"
+          description: "Идентификатор ТО в системе Магнит"
+      responses:
+        200:
+          $ref: '#/components/responses/StoresPricesResponse'
+        400:
+          $ref: '#/components/responses/BadRequestErrorResponseWithoutBody'
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponseWithoutBody"
+        403:
+          $ref: "#/components/responses/ForbiddenErrorResponseWithoutBody"
+        404:
+          $ref: '#/components/responses/NotFoundErrorResponseWithoutBody'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+  /v1/nomenclature/stores/{store_id}/stocks:
+    get:
+      tags:
+        - Nomenclature
+      summary: "Информация по остаткам товаров в ТО"
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: store_id
+          required: true
+          schema:
+            type: string
+          example: "123456"
+          description: "Идентификатор ТО в системе Магнит"
+      responses:
+        200:
+          $ref: '#/components/responses/StoresStocksResponse'
+        400:
+          $ref: '#/components/responses/BadRequestErrorResponseWithoutBody'
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponseWithoutBody"
+        403:
+          $ref: "#/components/responses/ForbiddenErrorResponseWithoutBody"
+        404:
+          $ref: '#/components/responses/NotFoundErrorResponseWithoutBody'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+  /v1/nomenclature/stores/{store_id}/stocks_delta:
+    get:
+      tags:
+        - Nomenclature
+      summary: "Информация по дельте остатков товара в ТО"
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - in: path
+          name: store_id
+          required: true
+          schema:
+            type: string
+          example: "123456"
+          description: "Идентификатор ТО в системе Магнит"
+        - in: query
+          name: timestamp_from
+          required: true
+          schema:
+            type: integer
+          example: "1717577139"
+          description: "Время с которого нужны изменения по остаткам в формате unix time в секундах"
+      responses:
+        200:
+          $ref: '#/components/responses/StoresStocksResponse'
+        400:
+          $ref: '#/components/responses/BadRequestGoodStocksErrorResponse'
+        401:
+          $ref: "#/components/responses/UnauthorizedErrorResponseWithoutBody"
+        403:
+          $ref: "#/components/responses/ForbiddenErrorResponseWithoutBody"
+        404:
+          $ref: '#/components/responses/NotFoundErrorResponseWithoutBody'
+        500:
+          $ref: '#/components/responses/InternalServerErrorResponse'
+        503:
+          $ref: "#/components/responses/UnavailableServerErrorResponse"
+
+  /:
+    post:
+      description: Базовый путь на стороне Партнера, на который будут отправляться различные уведомления от системы Магнит.
+      summary: Получение событий от системы Магнит
+      tags:
+        - WebHookEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+            examples:
+              Торговый объект заблокирован:
+                value:
+                  type: store_blocked
+                  payload:
+                    store_code: "012345"
+                  created_at: 2023-12-31T00:00:00+03:00
+              Торговый объект разблокирован:
+                value:
+                  type: store_unblocked
+                  payload:
+                    store_code: "012345"
+                  created_at: 2023-12-31T00:00:00+03:00
+              Обновление очереди сборки:
+                value:
+                  type: store_collect_queue_updated_v1
+                  "payload": {
+                    "items": [
+                      {
+                        "store_code": "000101",
+                        "completed_at": "2023-12-31T00:00:00+03:00",
+                        "updated_at": "2023-12-31T00:00:00+03:00"
+                      },
+                      {
+                        "store_code": "000102",
+                        "completed_at": "2023-12-31T00:00:00+03:00",
+                        "updated_at": "2023-12-31T00:00:00+03:00"
+                      }
+                    ]
+                  }
+                  created_at: 2023-12-31T00:00:00+03:00
+              Обновление статуса магазинов:
+                value:
+                  type: store_status_updated_v1
+                  "payload": {
+                    "items": [
+                      {
+                        "store_code": "012345",
+                        "status": "store_blocked",
+                        "updated_at": "2023-12-31T00:00:00+03:00"
+                      },
+                      {
+                        "store_code": "123450",
+                        "status": "store_unblocked",
+                        "updated_at": "2023-12-31T00:00:00+03:00"
+                      }
+                    ]
+                  }
+                  created_at: 2023-12-31T00:00:00+03:00
+        required: true
+      responses:
+        200:
+          description: Запрос принят.
+        400:
+          description: Что-то не так в содержании запроса. Ориентируйтесь на описание ошибки, чтобы понять, что именно не так.
+        401:
+          description: В запросе не указан или указан несуществуюший, истекший токен авторизации.
+        404:
+          description: Запрашиваемый ресурс не найден. Проверьте адреса запросов, по которым обращается система партнера.
+        500:
+          description: Внутренняя ошибка сервера Партнера. Такая ошибка через некоторое время исчезнет сама собой.
+        503:
+          description: Внутренняя ошибка сервера Партнера. Такая ошибка через некоторое время исчезнет сама собой.
+
+  /v1/last-mile/claims/create:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Last Mile
+      operationId: CreateClaim
+      description: 'Создание заявки на доставку'
+      parameters:
+        - in: query
+          name: request_id
+          description: 'Ключ идемпотентности запроса'
+          required: true
+          schema:
+            $ref: '#/components/schemas/param.IdempotencyKey'
+          x-oapi-codegen-extra-tags:
+            validate: required,gt=10,lt=100
+        - in: header
+          name: X-Partner-ID
+          description: 'Идентификатор партнера из ГИС ГКЦ'
+          required: true
+          schema:
+            $ref: '#/components/schemas/param.PartnerID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/request.CreateClaim'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.CreateClaim'
+          description: 'OK'
+        '400':
+          description: 'Bad Request'
+        '500':
+          description: 'Internal Server Error'
+
+  /v1/last-mile/claims/cancel:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Last Mile
+      operationId: CancelClaim
+      description: 'Отменить заявку'
+      parameters:
+        - in: header
+          name: X-Partner-ID
+          description: 'Идентификатор партнера из ГИС ГКЦ'
+          required: true
+          schema:
+            $ref: '#/components/schemas/param.PartnerID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/request.CancelClaim'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.CancelClaim'
+          description: 'OK'
+        '400':
+          description: 'Bad Request'
+        '500':
+          description: 'Internal Server Error'
+
+  /v1/last-mile/claims/info:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Last Mile
+      operationId: ClaimsInfo
+      description: 'Информация по заявкам'
+      parameters:
+        - in: header
+          name: X-Partner-ID
+          description: 'Идентификатор партнера из ГИС ГКЦ'
+          required: true
+          schema:
+            $ref: '#/components/schemas/param.PartnerID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/request.ClaimsInfo'
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.ClaimsInfo'
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.BadRequest'
+        '409':
+          description: "Conflict"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response.Conflict"
+        '500':
+          description: 'Internal Server Error'
+
+  /v1/last-mile/claims/events:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Last Mile
+      operationId: ClaimsEvents
+      description: 'События по заявкам'
+      parameters:
+        - in: query
+          name: last_known_id
+          description: |
+            Идентификатор последнего события, обработанного клиентом. 
+            Если не передан, то будут выданы изменения, начиная с самого первого.
+          required: false
+          schema:
+            $ref: '#/components/schemas/param.EventID'
+        - in: query
+          name: limit
+          description: Максимальное количество событий в результатах.
+          required: false
+          schema:
+            type: integer
+            maximum: 1000
+            default: 1000
+          x-oapi-codegen-extra-tags:
+            validate: lt=1000
+        - in: header
+          name: X-Partner-ID
+          description: 'Идентификатор партнера из ГИС ГКЦ'
+          required: true
+          schema:
+            $ref: '#/components/schemas/param.PartnerID'
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.ClaimsEvents'
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.BadRequest'
+        '500':
+          description: 'Internal Server Error'
+
+  /v1/last-mile/claims/accept:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Last Mile
+      operationId: AcceptClaim
+      description: 'Принять заявку на доставку после расчета стоимости'
+      parameters:
+        - in: header
+          name: X-Partner-ID
+          description: 'Идентификатор партнера из ГИС ГКЦ'
+          required: true
+          schema:
+            $ref: '#/components/schemas/param.PartnerID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/request.AcceptClaim'
+      responses:
+        '200':
+          description: 'OK'
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.BadRequest'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.NotFound'
+        '409':
+          description: 'Conflict'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.Conflict'
+        '500':
+          description: 'Internal Server Error'
+
+  /v1/last-mile/claims/update:
+    patch:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Last Mile
+      operationId: UpdateClaim
+      description: 'Обновление заявки на доставку'
+      parameters:
+        - in: header
+          name: X-Partner-ID
+          description: 'Идентификатор партнера из ГИС ГКЦ'
+          required: true
+          schema:
+            $ref: '#/components/schemas/param.PartnerID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/request.UpdateClaims'
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.UpdateClaims'
+        '400':
+          description: 'Bad Request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.BadRequest'
+        '404':
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.NotFound'
+        '409':
+          description: 'Conflict'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response.Conflict'
+        '500':
+          description: 'Internal Server Error'
+
+  /v1/magnit-post/pickup-points:
+    get:
+      security:
+        - bearerAuth: [ ]
+      summary: Получить список пунктов выдачи заказов
+      operationId: getPickupPoints
+      description: Метод позволяет получить список активных пунктов выдачи заказов.
+      parameters:
+        - $ref: '#/components/parameters/pageNumber'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Список пунктов выдачи заказов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PickupPointsResponse'
+        '401':
+          description: Authorization Required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Authorization Required
+      tags:
+        - Magnit Post
+  /v1/magnit-post/orders:
+    post:
+      security:
+        - bearerAuth: [ ]
+      operationId: createOrder
+      summary: Создать заказ
+      description: Метод позволяет создать новый заказ на доставку.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryOrderRequest'
+      responses:
+        '201':
+          description: Заказ на доставку успешно создан в системе "Магнит Маркет"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryOrderResponse'
+        '400':
+          description: Заказ на доставку не может быть корректно создан. Переданы некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: PickupPoint c key 63425 не существует
+        '401':
+          description: Authorization Required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Authorization Required
+      tags:
+        - Magnit Post
+  /v1/magnit-post/orders/{trackingNumber}:
+
+    parameters:
+      - $ref: '#/components/parameters/trackingNumber'
+    get:
+      security:
+        - bearerAuth: [ ]
+      operationId: getOrder
+      summary: Получить заказ по trackingNumber
+      description: Метод позволяет получить данные заказа по трек-номер.
+      responses:
+        '200':
+          description: Информация о заказе в системе "Магнит Маркет"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryOrderResponse'
+        '404':
+          description: Заказ с указанным trackingNumber не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Заказ с trackingNumber 325445758 не найден
+        '401':
+          description: Authorization Required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Authorization Required
+      tags:
+        - Magnit Post
+    delete:
+      security:
+        - bearerAuth: [ ]
+      operationId: deleteOrder
+      summary: Отменить заказ по trackingNumber
+      description: Метод позволяет отменить заказ по идентификатору.
+      responses:
+        '204':
+          description: Заказ отменен
+        '404':
+          description: Заказ с указанным trackingNumber не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Заказ с trackingNumber 325445758 не найден
+        '400':
+          description: Заказ с указанным trackingNumber не может быть отменен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Заказ с trackingNumber 325445758 находится в статусе ISSUED и не может быть отменен.
+        '401':
+          description: Authorization Required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Authorization Required
+      tags:
+        - Magnit Post
+  /v1/magnit-post/orders/{trackingNumber}/status-history:
+    parameters:
+      - $ref: '#/components/parameters/trackingNumber'
+    get:
+      security:
+        - bearerAuth: [ ]
+      operationId: getOrderStatusHistory
+      summary: Получить историю статусов по заказу на доставку
+      description: Метод позволяет получить историю изменения статусов заказа на доставку по trackingNumber.
+      responses:
+        '200':
+          description: История изменения статусов заказа в системе "Магнит Маркет"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryOrderHistoryResponse'
+        '404':
+          description: Заказ с указанным trackingNumber не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Заказ с trackingNumber 325445758 не найден
+        '401':
+          description: Authorization Required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Authorization Required
+      tags:
+        - Magnit Post
+  /v1/magnit-post/order-statuses:
+    post:
+      security:
+        - bearerAuth: [ ]
+      operationId: getOrdersStatuses
+      summary: Получить актуальные статусы по нескольким заказам
+      description: Метод позволяет получить актуальные статусы заказов на доставку, передав список trackingNumber
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryOrderStatusesRequest'
+      responses:
+        '200':
+          description: Коллекция актуальных статусов по запрошенным заказам на доставку
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryOrderStatusesResponse'
+        '401':
+          description: Authorization Required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+              example:
+                message: Authorization Required
+      tags:
+        - Magnit Post
+components:
+  securitySchemes:
+    bearerAuth: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+
+  parameters:
+    trackingNumber:
+      in: path
+      name: trackingNumber
+      required: true
+      description: Трек-номер заказа.
+      schema:
+        type: string
+    pageNumber:
+      name: page
+      in: query
+      required: true
+      description: Номер страницы, начинающийся с единицы (1..N)
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 1
+    pageSize:
+      name: size
+      in: query
+      required: true
+      description: Размер возвращаемой страницы
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 1000
+        default: 100
+
+  schemas:
+
+    StoresPricesItemsV1:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoresPricesItemV1"
+
+    StoresPricesItemV1:
+      required:
+        - good_id
+        - base
+      type: object
+      properties:
+        good_id:
+          type: string
+          example: "13234864"
+          description: "Идентификатор товара в системе Магнит"
+        base:
+          $ref: "#/components/schemas/StoresBasePriceV1"
+        action:
+          $ref: "#/components/schemas/StoresActionPriceV1"
+
+    StoresBasePriceV1:
+      required:
+        - value
+        - currency
+      description: "Базовая цена товара"
+      properties:
+        value:
+          type: integer
+          description: "Цена в копейках"
+          example: 29999
+        currency:
+          $ref: '#/components/schemas/CurrencyEnum'
+
+    StoresActionPriceV1:
+      required:
+        - value
+        - currency
+        - finished_at
+      description: "Акционная цена товара"
+      properties:
+        value:
+          type: integer
+          description: "Цена в копейках"
+          example: 29999
+        currency:
+          $ref: '#/components/schemas/CurrencyEnum'
+        started_at:
+          type: string
+          description: "Дата начала действия акционной цены в формате RFC3399"
+          example: "2023-12-01T00:00:00+03:00"
+        finished_at:
+          type: string
+          description: "Дата окончания действия акционной цены в формате RFC3399"
+          example: "2023-12-30T00:00:00+03:00"
+
+    StoresStocksItemsV1:
+      required:
+        - timestamp
+        - items
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          description: "Дата запроса информации об остатках в unix time в секундах"
+          example: 1717590140
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoresStockItemV1"
+
+    StoresStockItemV1:
+      required:
+        - good_id
+        - quantity
+      type: object
+      properties:
+        good_id:
+          type: string
+          description: "Идентификатор товара в системе Магнит"
+          example: "123456"
+        quantity:
+          type: number
+          description: "Остаток товара по товарной позиции в штуках. Для весового товара вес передается в килограммах"
+          example: 500
+
+    Event:
+      required:
+        - type
+        - created_at
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/EventEnum'
+        payload:
+          oneOf:
+            - $ref: '#/components/schemas/StoreBlockedEvent'
+            - $ref: '#/components/schemas/StoreUnblockedEvent'
+            - $ref: '#/components/schemas/StoreStatusUpdatedV1'
+            - $ref: '#/components/schemas/StoreCollectQueueUpdatedV1'
+        created_at:
+          type: string
+          title: Время возникновения события
+          description: "Время возникновения события в RFC3339 с указанием часового пояса"
+          example: "2023-12-31T00:00:00+03:00"
+
+    EventEnum:
+      type: string
+      description: Тип события
+      enum:
+        - 'store_blocked'
+        - 'store_unblocked'
+        - 'store_collect_queue_updated_v1'
+        - 'store_status_updated_v1'
+
+    StoreStatusUpdatedV1:
+      title: Набор актуальных статусов магазинов
+      description: Магазины изменили статус работы
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          $ref: '#/components/schemas/StoreStatusUpdatedItemV1'
+
+    StoreStatusUpdatedItemV1:
+      title: Обновление статуса магазина
+      description: Магазин изменил статус работы
+      type: object
+      required:
+        - store_code
+        - status
+      properties:
+        store_code:
+          type: string
+          example: "012345"
+          description: "Идентификатор магазина в системе Магнит."
+        status:
+          $ref: '#/components/schemas/StoreStatusEnum'
+        updated_at:
+          $ref: '#/components/schemas/Datetime'
+
+    Datetime:
+      type: string
+      description: "Дата в формате RFC3339 с указанием часового пояса"
+      example: "2023-12-31T00:00:00+03:00"
+
+    StoreStatusEnum:
+      type: string
+      description: Статус магазина
+      enum:
+        - 'store_blocked'
+        - 'store_unblocked'
+
+    StoreBlockedEvent:
+      title: Магазин заблокирован
+      description: Событие блокировки магазина
+      type: object
+      required:
+        - store_code
+      properties:
+        store_code:
+          type: string
+          example: "123456"
+          description: "Идентификатор магазина в системе Магнит."
+
+    StoreUnblockedEvent:
+      title: Магазин разблокирован
+      description: Событие разблокировки магазина
+      type: object
+      required:
+        - store_code
+      properties:
+        store_code:
+          type: string
+          example: "123456"
+          description: "Идентификатор магазина в системе Магнит."
+
+    StoreBlockingReasonEnum:
+      type: string
+      description: Причина блокировки магазина в системе Магнит
+      enum:
+        - 'REVISION'
+        - 'TECHNICAL_PROBLEMS'
+        - 'TOO_BUSY'
+
+
+    AuthRequest:
+      required:
+        - client_id
+        - client_secret
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: Идентификатор партнера. Выдается по запросу
+        client_secret:
+          type: string
+          description: Секретный ключ партнера. Выдается по запросу
+
+    AuthSuccessResponse:
+      description: "Успешная авторизация"
+      required:
+        - access_token
+        - expires_in
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: Токен доступа
+        expires_in:
+          type: string
+          description: Время истечения токена Unix Timestamp
+        created_at:
+          type: string
+          description: Время создания токена Unix Timestamp, если текущий токен еще не истек
+
+    OrderRequest:
+      type: object
+      required:
+        - original_order_id
+        - store_code
+        - customer
+        - collect
+        - price
+        - cart
+      properties:
+        original_order_id:
+          type: string
+          description: "Идентификатор заказа в системе партнера"
+        store_code:
+          type: string
+          example: "123456"
+          description: "Идентификатор магазина в системе Магнит. Используется для отправки заказа на сборку"
+        customer:
+          $ref: '#/components/schemas/Customer'
+        delivery:
+          oneOf:
+            - $ref: '#/components/schemas/DeliveryPartner'
+            - $ref: '#/components/schemas/DeliveryMagnit'
+        collect:
+          $ref: '#/components/schemas/Collect'
+        cart:
+          $ref: '#/components/schemas/CartRequest'
+        price:
+          $ref: '#/components/schemas/OrderPrice'
+        comment:
+          type: string
+          description: "До 1000 символов"
+
+    Order:
+      type: object
+      required:
+        - original_order_id
+        - store_code
+        - status
+        - cart
+        - price
+      properties:
+        original_order_id:
+          type: string
+          description: "Идентификатор заказа в системе партнера"
+        store_code:
+          type: string
+          example: "123456"
+          description: "Идентификатор магазина в системе Магнит. Используется для отправки заказа на сборку"
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        cart:
+          $ref: '#/components/schemas/Cart'
+        collect:
+          $ref: '#/components/schemas/OrderCollect'
+        price:
+          $ref: '#/components/schemas/OrderPrice'
+        comment:
+          type: string
+          description: "До 1000 символов"
+
+    OrderStatusResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+
+
+    OrderStatus:
+      type: object
+      required:
+        - code
+        - updated_at
+      properties:
+        code:
+          $ref: '#/components/schemas/OrderStatusEnum'
+        reason:
+          $ref: '#/components/schemas/OrderCancellationReasonEnum'
+        updated_at:
+          type: string
+          description: "Дата последнего обновления статуса в RFC3339 с указанием часового пояса"
+          example: "2023-12-31T00:00:00+03:00"
+
+    OrderChangeStatus:
+      type: object
+      required:
+        - code
+        - updated_at
+      properties:
+        code:
+          $ref: '#/components/schemas/OrderStatusEnum'
+        updated_at:
+          type: string
+          description: "Дата последнего обновления статуса в RFC3339 с указанием часового пояса"
+          example: "2023-12-31T00:00:00+03:00"
+
+    OrderChangeRequestStatus:
+      type: object
+      required:
+        - code
+        - updated_at
+      properties:
+        code:
+          $ref: '#/components/schemas/OrderChangeStatusRequestEnum'
+        updated_at:
+          type: string
+          description: "Дата последнего обновления статуса в RFC3339 с указанием часового пояса"
+          example: "2023-12-31T00:00:00+03:00"
+
+    OrderPaymentStatus:
+      type: string
+      enum:
+        - NOT_PAID
+        - PAID
+
+    OrderPaymentType:
+      type: string
+      enum:
+        - PREPAID
+        - POSTPAID
+
+    OrderPaymentMethod:
+      type: string
+      enum:
+        - CASH_ON_DELIVERY
+        - CARD_ON_DELIVERY
+        - SBP
+        - EXTERNAL_CERTIFICATE
+
+    Comments:
+      type: object
+      properties:
+        customerComment:
+          type: string
+          description: Комментарий покупателя
+        vendorComment:
+          type: string
+          description: Комментарий поставщика, например код
+
+    Customer:
+      description: "Информация о клиенте. Используется сборщиком для согласования замен"
+      type: object
+      required:
+        - phone
+        - name
+      properties:
+        name:
+          type: string
+          description: "Имя клиента в сервисе партнера. Используется для обращений к клиенту"
+          example: "Иванов Иван Иванович"
+        phone:
+          type: string
+          description: "Номер телефона для связи с клиентом в международном формате. Состоит из частей +<код страны><номер>. Используется для связи сборщика с клиентом и согласования замен."
+          example: "+79031111111 или +74652516489 доб. 123456 или 84652516489 доб. 123456"
+
+    Delivery:
+      description: "Информация о доставке."
+      type: object
+      properties:
+        time_slot:
+          $ref: '#/components/schemas/DeliveryTimeSlot'
+    DeliveryStatus:
+      type: string
+      enum:
+        - in_progress
+        - delivered
+
+    DeliveryPartner:
+      type: object
+      description: "Доставка курьерами партнера"
+      properties:
+        time_slot:
+          $ref: '#/components/schemas/DeliveryTimeSlot'
+
+    DeliveryMagnit:
+      type: object
+      description: "Доставка курьерами Магнита"
+      required:
+        - address
+        - price
+        - coordinates
+      properties:
+        time_slot:
+          $ref: '#/components/schemas/DeliveryTimeSlot'
+        price:
+          $ref: '#/components/schemas/DeliveryPrice'
+        coordinates:
+          $ref: '#/components/schemas/DeliveryCoordinates'
+        address:
+          $ref: "#/components/schemas/DeliveryAddress"
+
+    DeliveryPrice:
+      type: object
+      description: "Стоимость доставки"
+      required:
+        - base
+      properties:
+        base:
+          $ref: '#/components/schemas/DeliveryBasePrice'
+    DeliveryTime:
+      type: object
+      required:
+        - expected_datetime
+      properties:
+        expected_datetime:
+          type: string
+          description: "Ожидаемая клиентом дата доставки в RFC3339 с указанием часового пояса"
+          example: "2023-12-31T00:00:00+03:00"
+
+    DeliveryCoordinates:
+      type: object
+      required:
+        - lat
+        - lng
+      properties:
+        lat:
+          type: number
+          description: "Координата широты куда необходимо доставить заказ"
+          example: 55.878315
+        lng:
+          type: number
+          description: "Координата долготы куда необходимо доставить заказ"
+          example: 37.65372
+
+    DeliveryAddress:
+      type: object
+      required:
+        - city
+        - building
+      properties:
+        city:
+          type: string
+          description: "Город, максимальная длина строки 100 символов"
+          example: "Москва"
+        street:
+          type: string
+          description: "Улица, максимальная длина строки 100 символов"
+          example: "Сухонская"
+        building:
+          type: string
+          description: "Номер дома, максимальная длина строки 10 символов"
+          example: "11"
+        entrance:
+          type: string
+          description: "Подъезд, максимальная длина строки 10 символов"
+          example: "1"
+        floor:
+          type: string
+          description: "Этаж, максимальная длина строки 10 символов"
+          example: "2"
+        flat:
+          type: string
+          description: "Квартира, максимальная длина строки 10 символов"
+          example: "202"
+        intercom:
+          type: string
+          description: "Домофон, максимальная длина строки 100 символов"
+          example: "202"
+        full:
+          type: string
+          description: "Полный адрес, максимальная длина строки 255 символов"
+          example: "Москва, ул. Сухонская, д.11, кв. 202"
+
+    DeliveryTimeSlot:
+      type: object
+      required:
+        - from
+        - to
+      properties:
+        from:
+          type: string
+          description: "Ожидаемая клиентом начальная дата-время доставки в RFC3339 с указанием часового пояса"
+          example: "2023-12-31T09:00:00+03:00"
+        to:
+          type: string
+          description: "Ожидаемая клиентом конечная дата-время доставки в RFC3339 с указанием часового пояса"
+          example: "2023-12-31T10:00:00+03:00"
+
+    DeliveryType:
+      description: "Тип доставки заказа. Используется для маршрутизации заказа."
+      type: string
+      enum:
+        - PICKUP
+        - COURIER
+
+    IssueOrderCreateResponse:
+      description: "Раздел выдачи при создании заказа. Код выдачи заказов включается для партнеров по запросу."
+      type: object
+      required:
+        - strategy
+      properties:
+        strategy:
+          $ref: '#/components/schemas/IssueStrategyEnum'
+        payload:
+          oneOf:
+            - $ref: '#/components/schemas/IssuePayloadEacTakerToCollect'
+
+    IssuePayloadEacTakerToCollect:
+      description: "Полезная нагрузка при получении заказа по коду выдачи"
+      type: object
+      required:
+        - eac
+      properties:
+        eac:
+          $ref: '#/components/schemas/EAC'
+
+    EAC:
+      description: "ЭАПП - Электронный акт-приёма передачи, код выдачи"
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: Код подтверждения ЭАПП (для типа taker_to_collect)
+
+    Collect:
+      description: "Информация о сборке."
+      type: object
+      required:
+        - strategy
+      properties:
+        strategy:
+          $ref: '#/components/schemas/CollectReplacementStrategyEnum'
+        desired_at:
+          description: "Желаемое время сборки заказа в RFC3339 с указанием часового пояса"
+          type: string
+          example: "2023-12-31T10:00:00+03:00"
+
+    OrderCollect:
+      description: "Информация о сборке заказа после его создания."
+      type: object
+      properties:
+        expected_at:
+          type: string
+          description: "Дата ожидаемой сборки заказа в RFC3339 с указанием часового пояса"
+          example: "2023-12-31T00:00:00+03:00"
+
+    CollectTypeEnum:
+      type: string
+      enum:
+        - MAGNIT
+        - PARTNER
+
+
+    CollectReplacementStrategyEnum:
+      description: "call_to_customer - всегда звонить клиенту для согласования"
+      type: string
+      enum:
+        - call_to_customer
+
+
+    Promo:
+      type: object
+      required:
+        - type
+        - value
+      properties:
+        type:
+          $ref: '#/components/schemas/PromoTypeEnum'
+        name:
+          type: string
+          example: "Первый заказ"
+        value:
+          type: string
+          example: "10, SORRYCODE"
+
+
+    PromoTypeEnum:
+      type: string
+      enum:
+        - 'PROMOCODE'
+        - 'PENSIONER'
+        - 'EXAMPLE'
+
+    Payment:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "paid"
+
+    OrderPrice:
+      description: "Сумма заказа"
+      type: object
+      required:
+        - total
+      properties:
+        total:
+          $ref: '#/components/schemas/OrderTotalPrice'
+
+    CartRequest:
+      description: "Корзина заказа"
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItemRequest'
+
+    Cart:
+      description: "Корзина заказа"
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+
+    CartItemRequest:
+      type: object
+      required:
+        - good_id
+        - name
+        - unit
+        - qnty
+        - price
+      properties:
+        good_id:
+          description: "Артикул товара в системе Магнит"
+          type: string
+          example: "0000000000"
+        name:
+          description: "Название товара в системе партнера"
+          type: string
+          example: "Огурцы"
+        qnty:
+          description: "Количество товара в граммах для весовых или в штуках для штучных"
+          type: integer
+          example: 1500
+        price:
+          $ref: '#/components/schemas/ProductPrice'
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+
+    CartItem:
+      type: object
+      required:
+        - good_id
+        - name
+        - unit
+        - qnty
+        - price
+      properties:
+        good_id:
+          description: "Артикул товара в системе Магнит"
+          type: string
+          example: "0000000000"
+        name:
+          description: "Название товара в системе партнера"
+          type: string
+          example: "Огурцы"
+        qnty:
+          description: "Количество товара в граммах для весовых или в штуках для штучных"
+          type: integer
+          example: 1500
+        price:
+          $ref: '#/components/schemas/ProductPrice'
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+        marking:
+          description: "Информация о маркировке единиц товара."
+          type: array
+          items:
+            $ref: '#/components/schemas/Marking'
+
+    DeliveryBasePrice:
+      type: object
+      description: "Стоимость доставки без скидок"
+      required:
+        - value
+      properties:
+        value:
+          type: integer
+          example: "10000"
+          description: "Стоимость в копейках"
+
+    BasePrice:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: integer
+          example: "10000"
+          description: "Стоимость в копейках"
+
+    OrderTotalPrice:
+      description: Полная стоимость заказа в копейках. Сколько денег будет списано с клиента за заказ.
+      allOf:
+        - $ref: '#/components/schemas/BasePrice'
+
+    ProductPrice:
+      description: "Стоимость одной позиции, включая скидки, если они есть"
+      type: object
+      required:
+        - original
+      properties:
+        original:
+          $ref: '#/components/schemas/BasePrice'
+
+    TaxTypeEnum:
+      type: string
+      description: 'Ставка НДС'
+      enum:
+        - 'no_vat'
+        - 'vat_0'
+        - 'vat_10'
+        - 'vat_20'
+        - 'vat_10/110'
+        - 'vat_20/120'
+
+    CurrencyEnum:
+      description: "Валюта"
+      type: string
+      enum:
+        - 'RUB'
+
+    VatEnum:
+      type: string
+      enum:
+        - 'NO_VAT'
+        - 'VAT_0'
+        - 'VAT_10_110'
+        - 'VAT_20_120'
+        - 'VAT_18_118'
+
+    ErrorCodeEnum:
+      type: string
+      enum:
+        - 'SOME_ERROR'
+        - 'FORBIDDEN'
+        - 'ORDER_NOT_FOUND'
+        - 'INTERNAL_ERROR'
+        - 'ARTICLE_NOT_FOUND'
+
+    UnitEnum:
+      description: "Размерность товара, весовой или штучный"
+      type: string
+      enum:
+        - 'weight'
+        - 'apiece'
+
+    OrderStatusEnum:
+      type: string
+      enum:
+        - 'order_created'
+        - 'order_on_work'
+        - 'order_ready'
+        - 'order_issued'
+        - 'order_delivered'
+        - 'order_cancelled'
+        - 'order_client_refused'
+
+
+    OrderChangeStatusRequestEnum:
+      type: string
+      enum:
+        - 'order_delivered'
+
+    OrderNotificationTypeEnum:
+      type: string
+      enum:
+        - 'order_paid'
+        - 'order_ready_to_pick_up'
+        - 'order_picked_up'
+
+    Stores:
+      type: object
+      properties:
+        stores:
+          type: array
+          items:
+            $ref: '#/components/schemas/Store'
+
+    Store:
+      type: object
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        flags:
+          $ref: '#/components/schemas/StoreFlags'
+
+    StoreFlags:
+      type: object
+      properties:
+        alcohol:
+          type: boolean
+        pickup:
+          type: boolean
+
+    ProductReplacement:
+      type: object
+      required:
+        - old_article
+        - new_article
+      properties:
+        old_article:
+          type: string
+        new_article:
+          type: string
+          description: артикул
+
+    Marking:
+      required:
+        - qnty
+        - cis
+      type: object
+      properties:
+        qnty:
+          type: integer
+          description: 'Количество товара в штуках или граммах, если товар весовой'
+        cis:
+          type: string
+          description: 'Код «Честного знака» без криптохвоста.'
+          example: '0104603731968500215jMa!Q\\u001d93rh1e'
+        request:
+          $ref: '#/components/schemas/MarkingRequest'
+
+
+
+    MarkingRequest:
+      description: "Объект запроса валидации марки"
+      properties:
+        id:
+          type: string
+          description: Уникальный идентификатор запроса валидации марки
+          example: "4cd5d966-000a-00aa-aaa0-58f392fb380e"
+        timestamp:
+          type: number
+          description: Дата и время по UTC с точностью до миллисекунд формирования запроса валидации марки.
+          example: 1714112888596
+
+    OrderChangeStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/OrderChangeRequestStatus'
+
+    OrderCancellationReasonEnum:
+      description: "Причина отмены заказа"
+      type: string
+      enum:
+        - 'test'
+        - 'customer_no_product_needed'
+        - 'customer_delivery_too_expensive'
+        - 'customer_impossible_order_change'
+        - 'customer_no_reason'
+        - 'assembly_is_late'
+        - 'assembly_no_reason'
+        - 'delivery_is_late'
+        - 'delivery_no_courier'
+        - 'payment_not_passed'
+        - 'order_not_picked_up'
+        - 'delivery_order_mixed'
+        - 'delivery_courier_fault'
+        - 'fraud'
+        - 'other'
+
+    VerifyEACRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+
+    VerifyEACResponse:
+      type: object
+      properties:
+        result:
+          $ref: '#/components/schemas/VerifyEACResult'
+
+
+    VerifyEACResult:
+      type: object
+      properties:
+        verificationResult:
+          $ref: '#/components/schemas/VerifyEACStatusEnum'
+        attemptsLeft:
+          type: integer
+          description: Попыток осталось
+
+    VerifyEACStatusEnum:
+      type: string
+      enum:
+        - 'ACCEPTED'
+        - 'REJECTED'
+        - 'NEED_UPDATE'
+
+    EACStrategyEnum:
+      type: string
+      enum:
+        - 'taker_to_collect'
+
+    IssueStrategyEnum:
+      type: string
+      enum:
+        - 'eac_taker_to_collect'
+
+    OrderCreateResponse:
+      description: Успешное создание заказа
+      type: object
+      required:
+        - original_order_id
+        - id
+      properties:
+        original_order_id:
+          type: string
+          description: Идентификатор заказа на стороне партнера
+        id:
+          type: string
+          description: Идентификатор заказа в системе Магнита
+        issue:
+          $ref: '#/components/schemas/IssueOrderCreateResponse'
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCodeEnum'
+        message:
+          type: string
+          description: Текст ошибки
+
+    StoreCollectQueueUpdatedV1:
+      title: Изменение очереди сборки магазинов
+      description: Магазины изменили очередь сборки заказов
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          $ref: '#/components/schemas/StoreCollectQueueUpdatedItemV1'
+
+    StoreCollectQueueUpdatedItemV1:
+      title: Набор актуальных значений очередей сборки
+      type: object
+      required:
+        - store_code
+        - completed_at
+      properties:
+        store_code:
+          example: "123456"
+          description: Идентификатор магазина в системе Магнит.
+          type: string
+        completed_at:
+          type: string
+          description: "Дата и время окончания сборки в магазине в формате RFC3339 с указанием часового пояса"
+          example: "2023-12-31T00:00:00+03:00"
+        updated_at:
+          type: string
+          description: "Дата и время в формате RFC3339 с указанием часового пояса, когда был посчитан completed_at"
+          example: "2023-12-31T00:00:00+03:00"
+
+    OauthToken:
+      type: object
+      required:
+        - access_token
+        - expires_in
+        - scope
+        - token_type
+      properties:
+        access_token:
+          type: string
+          description: Токен аутентификации
+          example: eyJhbGciOiJSUzI1NiIsImtpZCI6IjgyNmRhNjg0LTI5OGItNDRkYy1hYjM1LTkwZDQ4OWQ3MWUxOCIsInR5cCI6IkpXVCJ9.eyJhdWQiOltdLCJjbGllbnRfaWQiOiJkYThiOTUzYi1jNmNjLTRkODgtYTUzZi02MGUzYjBlOTY2MTUiLCJleHAiOjE3MDczOTc5MDIsImV4dCI6eyJmb28iOiJiYXIifSwiaWF0IjoxNzA3Mzk0MzAyLCJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjQ0NDQiLCJqdGkiOiIwNTdiYWQwMS05YmZjLTQyMTktYTYxMi00NWJjOWY0OWIxNzQiLCJuYmYiOjE3MDczOTQzMDIsInNjcCI6WyJvcGVuaWQiLCJvZmZsaW5lIl0sInN1YiI6ImRhOGI5NTNiLWM2Y2MtNGQ4OC1hNTNmLTYwZTNiMGU5NjYxNSJ9.LN5yR70uw2LlVvaEQC-9oHj0Rr4dtpfO42Ie5OTNmzJCJ40hbB0ncdeje6HrIkKTKbiCrJf-Dnb2j9XMa8ybLQDkqedBG4UN-oJUALeCUS2M6sj2sKAe7B7e_nkF5wz9cuqucR5mbfwa19_xmK517PbMTxX3ZRVuPhKVogNzUFMRSeiFABsXNYVLGB4H5plhP13L4_NkJ6XOzP_wnW207UYIQz2zT97WnhoUPTKQoRWaGw-_CFOtBV6p1oQieXXZIKJ0kJCOD_UVxj2Ume4iKtd4X71GtVnakuB9-JnC7nKZ4UIEYJZ8l70GS-6P1ztElcxE_Xp4xbgxjVQQLro6FiMAiVDwmpWm9aq6Q6uSM971ZZm476N7CUWvEazJ-Ydes-WI0w_scf5GTJIPyqTjYBYH1xrHjt3tjbv5wloUJcRIipeCZreGm8atop0y7YaihKM-AEaVr1-lg45HynDufIoO-hYKUQD48wpg-50gDTItenkMGkKPGkNFkiht80iau93v0g5P5S6AgI3EiW7SUakX5XFRVav5ggjl0BjVDlRZUjReUSbtTer4ShD3Ff_DHMMRzbElnj2vh9sp2UwTeHy_9pCoUiQFBzohAi7whTcydNZtLDAzBw51DWuhuiExZiqqJNoVezqVHMmSjUK4qxXk6YHULhna5KKSROnwJkU
+        expires_in:
+          type: integer
+          format: int64
+          description: Время жизни токена в секундах
+          example: 3599
+        scope:
+          type: string
+          description: Права доступа
+          example: openid last-mile:claims
+        token_type:
+          type: string
+          description: Тип токена
+          example: bearer
+
+    OauthError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: "Код ошибки, кратко описывающий ее причину"
+          example: invalid_client
+        error_description:
+          type: string
+          description: "Детальное описание ошибки"
+          example: Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method).
+        message:
+          type: string
+          description: "Системное сообщение"
+
+    BadRequestStoresStockDelta:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: "Код ошибки, кратко описывающий ее причину"
+          example: invalid_field
+        message:
+          type: string
+          description: "Системное сообщение"
+
+    #last-mile-start
+    param.IdempotencyKey:
+      type: string
+
+    param.PartnerID:
+      type: string
+
+    param.EventID:
+      type: string
+      format: uuid
+      x-go-type: uuid.UUID
+
+    request.CreateClaim:
+      $ref: '#/components/schemas/Claim'
+
+    request.CancelClaim:
+      type: object
+      required:
+        - claim_id
+      properties:
+        claim_id:
+          $ref: '#/components/schemas/ClaimID'
+        cancel_reason:
+          $ref: '#/components/schemas/CancelByPartnerReason'
+
+    request.AcceptClaim:
+      type: object
+      required:
+        - claim_id
+      properties:
+        claim_id:
+          $ref: '#/components/schemas/ClaimID'
+
+    request.ClaimsInfo:
+      type: object
+      required:
+        - claim_ids
+      properties:
+        claim_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClaimID'
+
+    request.UpdateClaims:
+      type: array
+      minItems: 1
+      maxItems: 100
+      x-oapi-codegen-extra-tags:
+        validate: required,gt=0,dive,max=100
+      items:
+        $ref: '#/components/schemas/UpdateClaim'
+
+    request.PushForwardClaim:
+      type: object
+      required:
+        - claim_id
+      properties:
+        claim_id:
+          $ref: '#/components/schemas/ClaimID'
+
+    response.CreateClaim:
+      type: object
+      required:
+        - claim_id
+      properties:
+        claim_id:
+          $ref: '#/components/schemas/ClaimID'
+
+    response.CancelClaim:
+      type: object
+      required:
+        - claim_id
+      properties:
+        claim_id:
+          $ref: '#/components/schemas/ClaimID'
+
+    response.ClaimsInfo:
+      type: object
+      required:
+        - claims
+      properties:
+        claims:
+          type: array
+          items:
+            $ref: '#/components/schemas/Claim'
+
+    response.ClaimsEvents:
+      type: array
+      items:
+        $ref: '#/components/schemas/ClaimsEvent'
+
+    response.UpdateClaims:
+      type: array
+      items:
+        $ref: '#/components/schemas/UpdateClaimStatus'
+
+    response.Conflict:
+      type: object
+      properties:
+        message:
+          type: string
+
+    response.BadRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: 'Тип ошибки валидации'
+          enum:
+            - 'INVALID_SCHEMA'
+            - 'INVALID_FIELD'
+            - 'OTHER_VALIDATION_ERRORS'
+        details:
+          type: array
+          items:
+            type: string
+            description: 'Описание'
+            x-oapi-codegen-extra-tags:
+              validate: min=1,dive
+
+    response.PushForwardClaim:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: |
+            Статус повторной обработки заявки
+            Возможные статусы:
+              processing - заявка находится в обработке
+              not_found - заявка отсутствует в dead letter
+          enum:
+            - push_successful
+            - not_found
+        claim_status:
+          $ref: '#/components/schemas/ClaimStatus'
+
+    response.NotFound:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ClaimID:
+      type: string
+      format: uuid
+      x-go-type: uuid.UUID
+      x-oapi-codegen-extra-tags:
+        validate: required,min=1,dive
+
+    ClaimStatus:
+      type: string
+      description: |
+        Статус доставки. Статусы доставки могут добавляться со временем. Нужно учитывать при интеграции. 
+        Промежуточные статусы:
+          created - заказ создан, обработка еще не началась.
+          estimating - рассчитывается стоимость доставки и проводится валидация.
+          ready_for_approval - ожидается подтверждение заявки заказчиком.
+          accepted - валидация завершена.
+          performer_searching - выполняется поиск курьера. 
+            Если курьер был ранее назначен, но отказался от заказа, то заказ снова попадает в этот статус после performer_found.
+          performer_found - курьер назначен. 
+          pickup_arrived - курьер прибыл в точку А для получения заказа.
+          pickuped - заказ получен. курьер движется в точку Б.
+          delivery_arrived - курьер прибыл в точку Б.
+          returning - курьер едет обратно в точку А для возврата товара
+          return_arrived - курьер прибыл в точку А для возврата товара 
+        
+        Терминальные статусы:
+          delivery_finished - курьер передал заказ клиенту. Доставка выполнена.
+          delivery_failed - курьер не смог доставить заказ.
+          cancelled - заказ был отменен со стороны партнера (бесплатная отмена).
+          cancelled_with_payment - заказ был отменен со стороны партнера (платная отмена).
+          cancelled_by_service - заказ был отменен со стороны сервиса доставки. Причина отмены в поле cancel_reason.
+          return_finished - курьер вернул заказ в точку А
+          return_failed - возврат заказа не удался.
+      enum:
+        - created
+        - estimating
+        - ready_for_approval
+        - accepted
+        - performer_searching
+        - performer_found
+        - pickup_arrived
+        - pickuped
+        - delivery_arrived
+        - returning
+        - return_arrived
+        - delivery_finished
+        - delivery_failed
+        - cancelled
+        - cancelled_with_payment
+        - cancelled_by_service
+        - return_finished
+        - return_failed
+
+    ClaimState:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/ClaimStatus'
+        cancel_reason:
+          $ref: '#/components/schemas/CancelReason'
+
+    CourierInfo:
+      type: object
+      description: |
+        Информация о курьере, который выполняет заказ. Заполняется только, если курьер уже был назначен.
+        Если курьер не был назначен или был снят с заказа - поле пустое.
+      required:
+        - name
+        - phone
+      properties:
+        name:
+          description: Имя курьера
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
+        phone:
+          description: Телефон для связи
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    Claim:
+      type: object
+      required:
+        - external_order_id
+        - items
+        - route_points
+      properties:
+        external_order_id:
+          description: |
+            Номер заказа в системе партнера, по которому курьер сможет получить его в магазине.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
+        items:
+          $ref: "#/components/schemas/Items"
+        due_time:
+          $ref: '#/components/schemas/DateTime'
+        route_points:
+          description: "Точки получения заказа и назначения."
+          type: array
+          items:
+            $ref: '#/components/schemas/RoutePoint'
+          x-oapi-codegen-extra-tags:
+            validate: required,len=2,dive
+        state:
+          $ref: '#/components/schemas/ClaimState'
+        courier_info:
+          $ref: '#/components/schemas/CourierInfo'
+        estimation:
+          $ref: '#/components/schemas/Estimation'
+        need_return:
+          description: 'Нужна ли обратная доставка в случае, если заказ доставить не удалось'
+          type: boolean
+        comment:
+          description: Комментарий к заказу
+          type: string
+        meta:
+          oneOf:
+            - $ref: "#/components/schemas/Meta"
+
+    Items:
+      description: "Информация по грузам."
+      type: object
+      required:
+        - weight
+      properties:
+        weight:
+          description: "Общий вес в граммах."
+          type: integer
+          minimum: 0
+          maximum: 100000
+          x-oapi-codegen-extra-tags:
+            validate: required,lte=100000,gte=0
+          example: 1000
+        cost:
+          description: "Стоимость в копейках."
+          type: integer
+          example: 250000
+          minimum: 0
+          maximum: 2147483647
+          x-oapi-codegen-extra-tags:
+            validate: gte=0,lt=2147483647
+
+    Contact:
+      type: object
+      required:
+        - phone
+      properties:
+        name:
+          description: "Имя или наименование организации"
+          type: string
+          example: "Иван Иванов"
+        phone:
+          description: "Контактный телефон"
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required,e164
+          example: "+78005553535"
+        extra_phone:
+          description: "Дополнительный телефон"
+          type: string
+          example: "+78005553535"
+
+    Estimation:
+      description: |
+        Результат оценки расстояния и стоимости доставки, а также ожидаемое времени доставки. 
+        Заполняется только после расчета стоимости.
+      type: object
+      required:
+        - distance
+      properties:
+        distance:
+          description: "Расстояние в метрах"
+          type: integer
+          example: 10000
+        cost:
+          description: "Стоимость доставки в копейках"
+          type: integer
+          example: 250000
+        estimated_arrival:
+          type: string
+          description: 'Ожидаемое время доставки в формате (RFC3339 формат : %Y-%M-%DT%h:%m:%sZ)'
+          example: '2023-03-20T15:04:05Z'
+          format: date-time
+        expected_courier_arrival:
+          type: string
+          description: 'Ожидаемое время прибытия курьера за заказом (RFC3339 формат : %Y-%M-%DT%h:%m:%sZ)'
+          example: '2023-03-20T15:04:05Z'
+          format: date-time
+
+    RoutePointType:
+      type: string
+      description: |
+        Тип точки:
+        source - точка получения заказа
+        destination - точка, куда нужно доставить заказ
+      enum:
+        - source
+        - destination
+      x-oapi-codegen-extra-tags:
+        validate: required,oneof=source destination
+
+    RoutePoint:
+      type: object
+      required:
+        - point_type
+        - address
+        - contact
+      properties:
+        point_type:
+          $ref: '#/components/schemas/RoutePointType'
+        address:
+          $ref: "#/components/schemas/Address"
+        contact:
+          $ref: "#/components/schemas/Contact"
+        transfer_code:
+          $ref: '#/components/schemas/TransferCode'
+
+    Address:
+      type: object
+      required:
+        - full_name
+        - coordinates
+      properties:
+        full_name:
+          description: "Полное название с указанием города"
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
+          example: "Москва, Садовническая улица, 82с2"
+        coordinates:
+          $ref: "#/components/schemas/Coordinates"
+        floor:
+          description: "Этаж"
+          type: string
+          example: "6"
+        flat:
+          description: "Квартира"
+          type: string
+          example: "40"
+        porch:
+          description: "Подъезд"
+          type: string
+          example: "2"
+        door_code:
+          description: "Код домофона"
+          type: string
+          example: "54В8228"
+        comment:
+          description: "Комментарий к адресу"
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,max=1000
+          maxLength: 1000
+          example: "Как пройти, куда постучать"
+
+    Coordinates:
+      description: "Координаты точки"
+      type: object
+      required:
+        - lat
+        - lon
+      properties:
+        lat:
+          type: number
+          minimum: -90
+          maximum: 90
+          x-oapi-codegen-extra-tags:
+            validate: required,lte=90,gte=-90
+          x-go-type: float64
+          example: 55.735616
+        lon:
+          type: number
+          minimum: -180
+          maximum: 180
+          x-oapi-codegen-extra-tags:
+            validate: required,lte=180,gte=-180
+          x-go-type: float64
+          example: 37.642384
+
+    Meta:
+      description: Дополнительная информация по заказу. Например, можно передать название торговой сети.
+      type: object
+
+    DateTime:
+      type: string
+      description: 'Дата/время в формате (RFC3339 формат : %Y-%M-%DT%h:%m:%sZ)'
+      example: '2023-03-20T15:04:05Z'
+      format: date-time
+
+    ClaimsEvent:
+      required:
+        - claim_id
+        - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        claim_id:
+          $ref: '#/components/schemas/ClaimID'
+        event_time:
+          $ref: '#/components/schemas/DateTime'
+        event:
+          oneOf:
+            - $ref: '#/components/schemas/ClaimsEventStatusChanged'
+
+    ClaimsEventStatusChanged:
+      description: Событие по заявке на доставку
+      required:
+        - new_status
+      type: object
+      properties:
+        new_status:
+          $ref: '#/components/schemas/ClaimStatus'
+        payload:
+          oneOf:
+            - $ref: '#/components/schemas/CourierInfo'
+            - $ref: '#/components/schemas/CancelReason'
+
+    CancelReason:
+      type: object
+      description: |
+        Причина отмены заявки
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          oneOf:
+            - $ref: '#/components/schemas/CancelByPartnerReasonCode'
+            - $ref: '#/components/schemas/CancelByServiceReasonCode'
+        message:
+          type: string
+          description: Описание причины отмены.
+
+    CancelByServiceReasonCode:
+      type: string
+      description: |
+        Код причины отмены сервисом:
+        performer_not_found - не удалось найти курьера за отведенное время.           
+        out_of_delivery_zone - заказ за пределами зоны доставки.           
+        out_of_working_time - заказ создан в нерабочее время.            
+        too_high_delivery_distance - слишком большое расстояние между точкой пикапа и дроп офф.        
+        too_heavy_cargo - слишком тяжелый заказ.       
+        other - другая причина со свободным описанием.
+      enum:
+        - performer_not_found
+        - out_of_delivery_zone
+        - out_of_working_time
+        - too_high_delivery_distance
+        - too_heavy_cargo
+        - other
+      x-oapi-codegen-extra-tags:
+        validate: required,oneof=performer_not_found out_of_delivery_zone out_of_working_time too_high_delivery_distance too_heavy_cargo other
+
+    CancelByPartnerReason:
+      type: object
+      description: |
+        Причина отмены заявки партнером
+      required:
+        - code
+      properties:
+        code:
+          $ref: '#/components/schemas/CancelByPartnerReasonCode'
+        message:
+          type: string
+          description: Описание причины отмены.
+
+    CancelByPartnerReasonCode:
+      type: string
+      description: |
+        Код причины отмены партнером:
+        long_wait_courier - долгое ожидание курьера 	 
+        cancelled_by_customer - клиент передумал 	
+        courier_without_inventory - курьер без сумки	
+        customer_not_respond - клиента нет дома	
+        long_wait_order - долгое ожидание заказа	
+        pickup_point_closed - точка выдачи заказа закрыта
+      enum:
+        - long_wait_courier
+        - cancelled_by_customer
+        - courier_without_inventory
+        - customer_not_respond
+        - long_wait_order
+        - pickup_point_closed
+      x-oapi-codegen-extra-tags:
+        validate: required,oneof=long_wait_courier cancelled_by_customer courier_without_inventory customer_not_respond long_wait_order pickup_point_closed
+
+    TransferCode:
+      type: string
+      description: |
+        Для точки с типом source - код для получения заказа в магазине (курьер называет код сборщику)
+        Для точки с типом destination - код для передачи заказ клиенту (пока не поддерживается)
+      example: "132443"
+
+    UpdateClaim:
+      type: object
+      required:
+        - claim_id
+        - route_points
+      properties:
+        claim_id:
+          $ref: '#/components/schemas/ClaimID'
+        route_points:
+          type: array
+          description: "Точки получения заказа и назначения."
+          items:
+            type: object
+            required:
+              - point_type
+              - transfer_code
+            properties:
+              point_type:
+                $ref: '#/components/schemas/RoutePointType'
+              transfer_code:
+                $ref: '#/components/schemas/TransferCode'
+              address:
+                type: object
+                required:
+                  - comment
+                properties:
+                  comment:
+                    type: string
+                    x-oapi-codegen-extra-tags:
+                      validate: required
+                    example: "Как пройти, куда постучать"
+          x-oapi-codegen-extra-tags:
+            validate: required,gt=0,dive
+
+    PartnerConfig:
+      type: object
+      description: |
+        Партнерский конфиг
+      required:
+        - sla
+        - max_order_accept_time
+        - max_order_weight
+        - max_delivery_distance
+      properties:
+        expected_courier_arrival:
+          $ref: '#/components/schemas/PartnerConfig.ExpectedCourierArrival'
+        max_performer_search_time:
+          $ref: '#/components/schemas/PartnerConfig.MaxPerformerSearchTime'
+        sla:
+          $ref: '#/components/schemas/PartnerConfig.Sla'
+        max_order_accept_time:
+          $ref: '#/components/schemas/PartnerConfig.MaxOrderAcceptTime'
+        max_order_weight:
+          $ref: '#/components/schemas/PartnerConfig.MaxOrderWeight'
+        max_delivery_distance:
+          $ref: '#/components/schemas/PartnerConfig.MaxDeliveryDistance'
+        delivery_provider:
+          $ref: '#/components/schemas/PartnerConfig.DeliveryProvider'
+        deferred_pickup_point_arrival_intervals:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartnerConfig.PickupPointArrivalInterval'
+      x-oapi-codegen-extra-tags:
+        validate: dive
+
+    PartnerConfig.PickupPointArrivalInterval:
+      type: object
+      description: |
+      required:
+        - lower_border
+        - upper_border
+      properties:
+        lower_border:
+          type: string
+          description: |
+            нижняя граница интервала отложенной отправки события PickupPointArrivalInterval
+        upper_border:
+          type: string
+          description: |
+            верхняя граница интервала отложенной отправки события PickupPointArrivalInterval
+    
+
+    PartnerConfig.ExpectedCourierArrival:
+      type: string
+      description: "SLA подлета в точку А"
+
+    PartnerConfig.MaxPerformerSearchTime:
+      type: string
+      description: "Максимальное время поиска курьера"
+
+    PartnerConfig.Sla:
+      type: string
+      description: "Полный SLA"
+      x-oapi-codegen-extra-tags:
+        validate: required
+
+    PartnerConfig.MaxOrderAcceptTime:
+      type: string
+      pattern: "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
+      description: "Время, до которого можно сделать заказ"
+      x-oapi-codegen-extra-tags:
+        validate: required
+
+    PartnerConfig.MaxOrderWeight:
+      type: integer
+      description: "Макисмальный вес заказа"
+      x-oapi-codegen-extra-tags:
+        validate: required,gte=0
+
+    PartnerConfig.MaxDeliveryDistance:
+      type: integer
+      description: "Максимальное расстония для доставки"
+      x-oapi-codegen-extra-tags:
+        validate: required,gte=0
+
+    PartnerConfig.DeliveryProvider:
+      type: string
+      description: "Сервис, который используется работы с доставками"
+      enum:
+        - "delivery_service"
+        - "proxy_dispatch"
+      x-oapi-codegen-extra-tags:
+        validate: oneof=delivery_service proxy_dispatch
+
+    UpdateClaimStatus:
+      type: object
+      required:
+        - claim_id
+        - status
+      properties:
+        claim_id:
+          $ref: '#/components/schemas/ClaimID'
+        status:
+          description: |
+            Статус обновления по конкретной заявке:
+              success - успешное обновление заявки
+              error - ошибка при обновлении
+          type: string
+          enum:
+            - success
+            - error
+          x-oapi-codegen-extra-tags:
+            validate: required
+
+    #last-mile-end
+
+    # magnit-post-start
+    PickupPointsResponse:
+      type: object
+      required:
+        - pickupPoints
+        - pager
+      properties:
+        pickupPoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/PickupPoint'
+        pager:
+          $ref: '#/components/schemas/Pager'
+    DeliveryOrderRequest:
+      type: object
+      description: Данные для создания заказа на доставку
+      required:
+        - customerOrderId
+        - payment
+        - delivery
+        - characteristic
+      properties:
+        customerOrderId:
+          description: Идентификатор заказа в системе отправителя
+          type: string
+          example: DO-2343423432
+        payment:
+          $ref: '#/components/schemas/MagnitPostPayment'
+        delivery:
+          $ref: '#/components/schemas/MagnitPostDelivery'
+        characteristic:
+          $ref: '#/components/schemas/ParcelCharacteristic'
+    DeliveryOrderResponse:
+      type: object
+      description: Информация о заказе на доставку в системе "Магнит Маркет"
+      properties:
+        trackingNumber:
+          description: Трек-номер заказа. Используется для получения информации по заказу.
+          type: string
+          example: 021458724
+        customerOrderId:
+          description: Идентификатор заказа в системе отправителя
+          type: string
+          example: DO-2343423432
+        pickupCode:
+          description: Код для получения заказа
+          type: string
+          example: 1234
+        status:
+          $ref: '#/components/schemas/DeliveryOrderStatus'
+        payment:
+          $ref: '#/components/schemas/MagnitPostPayment'
+        delivery:
+          $ref: '#/components/schemas/MagnitPostDelivery'
+        characteristic:
+          $ref: '#/components/schemas/ParcelCharacteristic'
+    DeliveryOrderStatusesRequest:
+      type: object
+      description: Список trackingNumber
+      properties:
+        trackingNumbers:
+          type: array
+          items:
+            type: string
+            description: trackingNumber
+            example: 021458724
+          minItems: 1
+          maxItems: 1000
+    DeliveryOrderStatusesResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/DeliveryOrderStatusInfo'
+    DeliveryOrderHistoryResponse:
+      type: object
+      description: История изменения статусов заказа на доставку
+      properties:
+        trackingNumber:
+          description: Трек-номер заказа. Используется для получения информации по заказу.
+          type: string
+          example: 021458724
+        statuses:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                $ref: '#/components/schemas/DeliveryOrderStatus'
+              timestamp:
+                type: number
+                format: int64
+                description: Время изменения статуса
+                example: 1718256471
+
+    DeliveryOrderStatusInfo:
+      type: object
+      description: Информация по статусам заказов на доставку
+      properties:
+        trackingNumber:
+          type: string
+          description: Трек-номер заказа на доставку
+          example: 021458724
+        status:
+          $ref: '#/components/schemas/DeliveryOrderStatus'
+    PickupPoint:
+      type: object
+      properties:
+        key:
+          description: Ключ пункта выдачи заказа
+          type: string
+          example: 63933
+        name:
+          description: Наименование ПВЗ
+          type: string
+          example: Двуреченка
+        type:
+          description: Тип пункта выдачи заказов
+          type: string
+          example: MAGNIT_COSMETICS
+        address:
+          description: Адрес пункта выдачи заказов
+          type: string
+          example: г. Казань, ул. Альфии Авзаловой, д. 7 (Магнит Косметик)
+        index:
+          description: Почтовый индекс пункта выдачи заказов
+          type: string
+          example: 420076
+        phones:
+          description: Телефон
+          type: array
+          items:
+            type: string
+            example: +7 (800) 700-96-16
+        workHours:
+          description: Расписание работы ПВЗ
+          $ref: '#/components/schemas/WorkHours'
+        coordinates:
+          description: Координаты
+          $ref: '#/components/schemas/PickupPointCoordinates'
+
+    PickupPointCoordinates:
+      type: object
+      properties:
+        latitude:
+          description: Широта
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 55.858563
+        longitude:
+          description: Долгота
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: 48.904931
+    WorkHours:
+      type: array
+      items:
+        $ref: '#/components/schemas/DayWorkHours'
+      minItems: 1
+      maxItems: 7
+    DayWorkHours:
+      type: object
+      description: Часы работы
+      properties:
+        day:
+          $ref: '#/components/schemas/Week'
+        from:
+          description: Открытие
+          type: string
+          example: "08:00"
+        till:
+          description: Закрытие
+          type: string
+          example: "20:00"
+    Week:
+      type: string
+      description: День недели
+      enum: [
+        MON,
+        TUE,
+        WED,
+        THU,
+        FRI,
+        SAT,
+        SUN
+      ]
+    DeliveryOrderStatus:
+      type: string
+      description: Статус заказа на доставку
+      enum: [
+        NEW,
+        CREATED,
+        DELIVERING_STARTED,
+        ACCEPTED_AT_POINT,
+        IN_COURIER_DELIVERY,
+        ISSUED,
+        DESTROYED,
+        SENT_TO_SENDER,
+        ACCEPTED_AT_WAREHOUSE,
+        REMOVED,
+        WAITING_RETURN,
+        RETURN_INITIATED,
+        RETURN_SEND_TO_WAREHOUSE,
+        POSSIBLY_DEFECTED,
+        DEFECTED,
+        RETURN_ACCEPTED_AT_WAREHOUSE,
+        RETURNED_TO_PROVIDER,
+        CANCELED;
+      ]
+      example: CREATED
+    MagnitPostPayment:
+      type: object
+      description: Информация об оплате товара
+      required:
+        - declaredValue
+      properties:
+        declaredValue:
+          description: Заявленная стоимость
+          type: number
+          format: double
+          minimum: 0
+          example: 153.28
+    MagnitPostDelivery:
+      type: object
+      description: Информация о деталях доставки
+      required:
+        - pickupPointKey
+        - recipient
+      properties:
+        pickupPointKey:
+          type: string
+          example: 63933
+        recipient:
+          $ref: '#/components/schemas/Recipient'
+    Recipient:
+      type: object
+      description: Информация о получателе заказа
+      required:
+        - firstName
+        - familyName
+        - phoneNumber
+      properties:
+        firstName:
+          type: string
+          description: Имя получателя
+          example: Иван
+        familyName:
+          type: string
+          description: Фамилия получателя
+          example: Иванов
+        phoneNumber:
+          description: Телефон получателя
+          type: string
+          example: +7..........
+        address:
+          type: string
+          description: Адрес получателя
+          example: г. Казань, ул. Альфии Авзаловой, д. 7
+    ParcelCharacteristic:
+      description: Весогабаритные характеристики посылки
+      type: object
+      required:
+        - weight
+        - length
+        - width
+        - height
+      properties:
+        weight:
+          description: Вес посылки в граммах
+          type: integer
+          format: int32
+          example: 500
+        length:
+          description: Длина посылки в миллиметрах
+          type: integer
+          format: int32
+          example: 200
+        width:
+          description: Ширина посылки в миллиметрах
+          type: integer
+          format: int32
+          example: 150
+        height:
+          description: Высота посылки в миллиметрах
+          type: integer
+          format: int32
+          example: 50
+    ErrorMessage:
+      description: Сообщение об ошибке
+      type: object
+      properties:
+        message:
+          description: Текст сообщения об ошибке
+    Pager:
+      type: object
+      required:
+        - total
+        - currentPage
+        - pageSize
+        - pageCount
+      properties:
+        totalItems:
+          description: Всего записей в коллекции
+          type: integer
+          format: int32
+          minimum: 0
+          example: 30
+        totalPages:
+          description: Количество страниц
+          type: integer
+          format: int32
+          minimum: 1
+          example: 2
+        currentPage:
+          description: Номер страницы
+          type: integer
+          format: int32
+          minimum: 1
+          example: 1
+        pageSize:
+          description: Количество элементов на одной странице
+          type: integer
+          format: int32
+          example: 100
+    #magnit-post-end
+  requestBodies:
+    OrderNotificationRequest:
+      required: true
+      description: Событие по заказу
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - type
+            properties:
+              type:
+                $ref: '#/components/schemas/OrderNotificationTypeEnum'
+          examples:
+            Готов забрать:
+              description: "Событие о том, что курьер готов забрать заказ для доставки, или клиент готов забрать заказ для самовывоза."
+              value:
+                type: order_ready_to_pick_up
+            Забрал заказ:
+              description: "Событие о том, что заказ был выдан курьеру или клиенту"
+              value:
+                type: order_picked_up
+            Заказ оплачен:
+              description: "Событие о том, что по заказу были получена оплата"
+              value:
+                type: order_paid
+
+    OrderCancellationRequest:
+      description: Информация об отмене заказа
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - reason
+            properties:
+              reason:
+                $ref: '#/components/schemas/OrderCancellationReasonEnum'
+              cancelled_at:
+                type: string
+                description: "Дата отмены заказа в RFC3339 с указанием часового пояса"
+                example: "2023-12-31T00:00:00+03:00"
+
+    OrderChangeStatusRequest:
+      required: true
+      description: Запрос на изменение статуса заказа. Отмена статуса заказа через данный метод невозможно.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OrderChangeStatusRequest'
+
+    PostV2OauthTokenRequest:
+      required: true
+      description: "Запрос на получение токена"
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            required:
+              - client_id
+              - client_secret
+              - scope
+              - grant_type
+            properties:
+              client_id:
+                type: string
+                description: "Идентификатор клиента"
+                example: da8b953b-c6cc-4d88-a53f-60e3b0e96615
+              client_secret:
+                type: string
+                description: "Секрет"
+                example: 525348e77144a9cee9a7471a8b67c50ea85b9e3eb377a3c1a3a23db88f9150eefe76e6a3
+              scope:
+                type: string
+                description: "Права доступа. Разделитель - пробел"
+                example: openid last-mile:claims
+              grant_type:
+                type: string
+                description: "Тип доступа"
+                example: client_credentials
+                default: client_credentials
+
+  responses:
+    OrderResponse:
+      description: Состав заказа
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Order'
+
+    OrderCreateResponse:
+      description: Успешное создание заказа
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OrderCreateResponse'
+
+    IssueOrderCreateResponse:
+      description: Раздел выдачи при создании заказа
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IssueOrderCreateResponse'
+
+    OrderStatusResponse:
+      description: Актуальный статус заказа
+      content:
+        application/json:
+          schema:
+              $ref: '#/components/schemas/OrderStatusResponse'
+          examples:
+            Заказ создан:
+              description: "Заказ создан в системе Магнит."
+              value:
+                status:
+                  code: order_created
+                  updated_at: "2014-03-31T14:11:29+02:00"
+            Заказ собирается:
+              description: "Заказ собирается/готовится."
+              value:
+                status:
+                  code: order_on_work
+                  updated_at: "2014-03-31T14:11:29+02:00"
+            Заказ собран:
+              description: "Заказ собран. Готов к самовывозу или ожидает курьера."
+              value:
+                status:
+                  code: order_ready
+                  updated_at: "2014-03-31T14:11:29+02:00"
+            Заказ выдан:
+              description: "Заказ выдан курьеру или произведен самовывоз."
+              value:
+                status:
+                  code: order_issued
+                  updated_at: "2014-03-31T14:11:29+02:00"
+            Заказ доставлен:
+              description: "Заказ вручен клиенту."
+              value:
+                status:
+                  code: order_delivered
+                  updated_at: "2014-03-31T14:11:29+02:00"
+            Заказ отменен:
+              description: "Заказ отменен."
+              value:
+                status:
+                  code: order_cancelled
+                  reason: unknown
+                  updated_at: "2014-03-31T14:11:29+02:00"
+
+    InternalServerErrorResponse:
+      description: Внутренняя ошибка сервера Магнита. Такая ошибка через некоторое время исчезнет сама собой. Если этого не происходит, обратитесь в службу поддержки.
+
+    UnavailableServerErrorResponse:
+      description: Сервер Магнита перегружен. Такая ошибка через некоторое время исчезнет сама собой.
+
+    BadRequestErrorResponse:
+      description: Что-то не так в содержании запроса. Ориентируйтесь на описание ошибки, чтобы понять, что именно не так.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    BadRequestGoodStocksErrorResponse:
+      description: Что-то не так в содержании запроса. Ориентируйтесь на описание ошибки, чтобы понять, что именно не так.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BadRequestStoresStockDelta'
+
+    NotFoundErrorResponse:
+      description: Запрашиваемый ресурс не найден. Проверьте адреса запросов, по которым обращается система партнера.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    UnauthorizedErrorResponse:
+      description: В запросе не указан или указан несуществующий, истекший токен авторизации.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ForbiddenErrorResponseWithoutBody:
+      description: Доступ к запрашиваемой информации запрещен.
+
+    BadRequestErrorResponseWithoutBody:
+      description: Что-то не так в содержании запроса.
+
+    UnauthorizedErrorResponseWithoutBody:
+      description: В запросе не указан или указан несуществующий, истекший токен авторизации.
+
+    NotFoundErrorResponseWithoutBody:
+      description: Запрашиваемый ресурс не найден. Проверьте адреса запросов, по которым обращается система партнера.
+
+    PostV2OauthSuccessResponse:
+      description: Успешное получение токена
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OauthToken'
+
+    PostV2OauthBadResponse:
+      description: Ошибка в параметрах, в ответе список ошибок валидации
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OauthError'
+
+    StoresPricesResponse:
+      description: Успешное получение цен по товарам в ТО Магнита
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StoresPricesItemsV1'
+
+    StoresStocksResponse:
+      description: Успешное получение остатков по товарам в ТО Магнита
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StoresStocksItemsV1'
+
+
+
