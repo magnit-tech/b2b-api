@@ -6,7 +6,7 @@ info:
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
-  - url: https://b2b-api-gateway.uat.ecom.md.magnit.ru/api
+  - url: https://b2b-api-gateway-uat.ecom.md.magnit.ru/api
     description: Демо стенд для проведения тестирования процессинга заказов.
 tags:
   - name: Auth
