@@ -2,11 +2,11 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.10
+  version: 0.1.11
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
-  - url: https://b2b-api-gateway.uat.ecom.md.magnit.ru/api
+  - url: https://b2b-api-gateway-uat.ecom.md.magnit.ru/api
     description: Демо стенд для проведения тестирования процессинга заказов.
 tags:
   - name: Auth
@@ -23,6 +23,8 @@ tags:
     description: Услуга доставки от системы Магнит
   - name: Magnit Post
     description: Услуга доставки до ПВЗ
+  - name: Magnit Market Seller API
+    description: Партнерская интеграция с Magnit Market по модели FBS
 
 paths:
   /v1/oauth/token:
@@ -38,14 +40,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthRequest'
+              $ref: "#/components/schemas/AuthRequest"
       responses:
         200:
           description: Успешная авторизация
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthSuccessResponse'
+                $ref: "#/components/schemas/AuthSuccessResponse"
         400:
           $ref: "#/components/responses/BadRequestErrorResponse"
         401:
@@ -62,7 +64,7 @@ paths:
       summary: Получение аутентификационного токена
       description: "Запросите новый токен 1 раз за 60 минут. Запрашивать токен перед каждым запросом к API-методам не требуется. Ссылка на полную спецификацию OAuth2 - https://tools.ietf.org/html/rfc6749"
       requestBody:
-        $ref: '#/components/requestBodies/PostV2OauthTokenRequest'
+        $ref: "#/components/requestBodies/PostV2OauthTokenRequest"
       responses:
         200:
           $ref: "#/components/responses/PostV2OauthSuccessResponse"
@@ -71,18 +73,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OauthError'
+                $ref: "#/components/schemas/OauthError"
         401:
           description: "Ошибка авторизации. В запросе не указан или указан несуществующий client_id"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OauthError'
+                $ref: "#/components/schemas/OauthError"
         500:
           $ref: "#/components/responses/InternalServerErrorResponse"
         503:
           $ref: "#/components/responses/UnavailableServerErrorResponse"
-
 
   /v1/orders:
     post:
@@ -90,13 +91,13 @@ paths:
         - Orders
       summary: Создание заказа
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrderRequest'
+              $ref: "#/components/schemas/OrderRequest"
       responses:
         201:
           $ref: "#/components/responses/OrderCreateResponse"
@@ -115,7 +116,7 @@ paths:
         - Orders
       summary: Детальная информация о заказе
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       parameters:
         - in: path
           name: orderId
@@ -126,15 +127,15 @@ paths:
           description: "Идентификатор заказа в системе Магнита"
       responses:
         200:
-          $ref: '#/components/responses/OrderResponse'
+          $ref: "#/components/responses/OrderResponse"
         400:
-          $ref: '#/components/responses/BadRequestErrorResponse'
+          $ref: "#/components/responses/BadRequestErrorResponse"
         401:
           $ref: "#/components/responses/UnauthorizedErrorResponse"
         404:
-          $ref: '#/components/responses/NotFoundErrorResponse'
+          $ref: "#/components/responses/NotFoundErrorResponse"
         500:
-          $ref: '#/components/responses/InternalServerErrorResponse'
+          $ref: "#/components/responses/InternalServerErrorResponse"
         503:
           $ref: "#/components/responses/UnavailableServerErrorResponse"
 
@@ -144,7 +145,7 @@ paths:
         - Orders
       summary: Отмена заказа
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       parameters:
         - in: path
           name: orderId
@@ -154,18 +155,18 @@ paths:
           example: "PM-bB00000001"
           description: "Идентификатор заказа в системе Магнита"
       requestBody:
-        $ref: '#/components/requestBodies/OrderCancellationRequest'
+        $ref: "#/components/requestBodies/OrderCancellationRequest"
       responses:
         200:
           description: Запрос принят.
         400:
-          $ref: '#/components/responses/BadRequestErrorResponse'
+          $ref: "#/components/responses/BadRequestErrorResponse"
         401:
           $ref: "#/components/responses/UnauthorizedErrorResponse"
         404:
-          $ref: '#/components/responses/NotFoundErrorResponse'
+          $ref: "#/components/responses/NotFoundErrorResponse"
         500:
-          $ref: '#/components/responses/InternalServerErrorResponse'
+          $ref: "#/components/responses/InternalServerErrorResponse"
         503:
           $ref: "#/components/responses/UnavailableServerErrorResponse"
 
@@ -175,7 +176,7 @@ paths:
         - Orders
       summary: Изменение статуса заказа
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       parameters:
         - in: path
           name: orderId
@@ -185,18 +186,18 @@ paths:
           example: "PM-bB00000001"
           description: "Идентификатор заказа в системе Магнита"
       requestBody:
-        $ref: '#/components/requestBodies/OrderChangeStatusRequest'
+        $ref: "#/components/requestBodies/OrderChangeStatusRequest"
       responses:
         202:
           description: Запрос обновления заказа принят, но ещё не обработан.
         400:
-          $ref: '#/components/responses/BadRequestErrorResponse'
+          $ref: "#/components/responses/BadRequestErrorResponse"
         401:
           $ref: "#/components/responses/UnauthorizedErrorResponse"
         404:
-          $ref: '#/components/responses/NotFoundErrorResponse'
+          $ref: "#/components/responses/NotFoundErrorResponse"
         500:
-          $ref: '#/components/responses/InternalServerErrorResponse'
+          $ref: "#/components/responses/InternalServerErrorResponse"
         503:
           $ref: "#/components/responses/UnavailableServerErrorResponse"
 
@@ -205,7 +206,7 @@ paths:
         - Orders
       summary: Получение статуса заказа
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       parameters:
         - in: path
           name: orderId
@@ -216,15 +217,15 @@ paths:
           description: "Идентификатор заказа в системе Магнита"
       responses:
         200:
-          $ref: '#/components/responses/OrderStatusResponse'
+          $ref: "#/components/responses/OrderStatusResponse"
         400:
-          $ref: '#/components/responses/BadRequestErrorResponse'
+          $ref: "#/components/responses/BadRequestErrorResponse"
         401:
           $ref: "#/components/responses/UnauthorizedErrorResponse"
         404:
-          $ref: '#/components/responses/NotFoundErrorResponse'
+          $ref: "#/components/responses/NotFoundErrorResponse"
         500:
-          $ref: '#/components/responses/InternalServerErrorResponse'
+          $ref: "#/components/responses/InternalServerErrorResponse"
         503:
           $ref: "#/components/responses/UnavailableServerErrorResponse"
 
@@ -234,7 +235,7 @@ paths:
         - Order Events
       summary: События по заказам от Партнера
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       parameters:
         - in: path
           name: orderId
@@ -244,21 +245,20 @@ paths:
           example: "PM-bB00000001"
           description: "Идентификатор заказа в системе Магнита"
       requestBody:
-        $ref: '#/components/requestBodies/OrderNotificationRequest'
+        $ref: "#/components/requestBodies/OrderNotificationRequest"
       responses:
         202:
           description: Запрос обновления заказа принят, но ещё не обработан.
         400:
-          $ref: '#/components/responses/BadRequestErrorResponse'
+          $ref: "#/components/responses/BadRequestErrorResponse"
         401:
           $ref: "#/components/responses/UnauthorizedErrorResponse"
         404:
-          $ref: '#/components/responses/NotFoundErrorResponse'
+          $ref: "#/components/responses/NotFoundErrorResponse"
         500:
-          $ref: '#/components/responses/InternalServerErrorResponse'
+          $ref: "#/components/responses/InternalServerErrorResponse"
         503:
           $ref: "#/components/responses/UnavailableServerErrorResponse"
-
 
   /v1/nomenclature/stores/{store_id}/prices:
     get:
@@ -266,7 +266,7 @@ paths:
         - Nomenclature
       summary: "Информация по ценам товаров в ТО"
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       parameters:
         - in: path
           name: store_id
@@ -277,17 +277,17 @@ paths:
           description: "Идентификатор ТО в системе Магнит"
       responses:
         200:
-          $ref: '#/components/responses/StoresPricesResponse'
+          $ref: "#/components/responses/StoresPricesResponse"
         400:
-          $ref: '#/components/responses/BadRequestErrorResponseWithoutBody'
+          $ref: "#/components/responses/BadRequestErrorResponseWithoutBody"
         401:
           $ref: "#/components/responses/UnauthorizedErrorResponseWithoutBody"
         403:
           $ref: "#/components/responses/ForbiddenErrorResponseWithoutBody"
         404:
-          $ref: '#/components/responses/NotFoundErrorResponseWithoutBody'
+          $ref: "#/components/responses/NotFoundErrorResponseWithoutBody"
         500:
-          $ref: '#/components/responses/InternalServerErrorResponse'
+          $ref: "#/components/responses/InternalServerErrorResponse"
         503:
           $ref: "#/components/responses/UnavailableServerErrorResponse"
 
@@ -297,7 +297,7 @@ paths:
         - Nomenclature
       summary: "Информация по остаткам товаров в ТО"
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       parameters:
         - in: path
           name: store_id
@@ -308,17 +308,17 @@ paths:
           description: "Идентификатор ТО в системе Магнит"
       responses:
         200:
-          $ref: '#/components/responses/StoresStocksResponse'
+          $ref: "#/components/responses/StoresStocksResponse"
         400:
-          $ref: '#/components/responses/BadRequestErrorResponseWithoutBody'
+          $ref: "#/components/responses/BadRequestErrorResponseWithoutBody"
         401:
           $ref: "#/components/responses/UnauthorizedErrorResponseWithoutBody"
         403:
           $ref: "#/components/responses/ForbiddenErrorResponseWithoutBody"
         404:
-          $ref: '#/components/responses/NotFoundErrorResponseWithoutBody'
+          $ref: "#/components/responses/NotFoundErrorResponseWithoutBody"
         500:
-          $ref: '#/components/responses/InternalServerErrorResponse'
+          $ref: "#/components/responses/InternalServerErrorResponse"
         503:
           $ref: "#/components/responses/UnavailableServerErrorResponse"
 
@@ -328,7 +328,7 @@ paths:
         - Nomenclature
       summary: "Информация по дельте остатков товара в ТО"
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       parameters:
         - in: path
           name: store_id
@@ -346,17 +346,17 @@ paths:
           description: "Время с которого нужны изменения по остаткам в формате unix time в секундах"
       responses:
         200:
-          $ref: '#/components/responses/StoresStocksResponse'
+          $ref: "#/components/responses/StoresStocksResponse"
         400:
-          $ref: '#/components/responses/BadRequestGoodStocksErrorResponse'
+          $ref: "#/components/responses/BadRequestGoodStocksErrorResponse"
         401:
           $ref: "#/components/responses/UnauthorizedErrorResponseWithoutBody"
         403:
           $ref: "#/components/responses/ForbiddenErrorResponseWithoutBody"
         404:
-          $ref: '#/components/responses/NotFoundErrorResponseWithoutBody'
+          $ref: "#/components/responses/NotFoundErrorResponseWithoutBody"
         500:
-          $ref: '#/components/responses/InternalServerErrorResponse'
+          $ref: "#/components/responses/InternalServerErrorResponse"
         503:
           $ref: "#/components/responses/UnavailableServerErrorResponse"
 
@@ -370,7 +370,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Event'
+              $ref: "#/components/schemas/Event"
             examples:
               Торговый объект заблокирован:
                 value:
@@ -387,38 +387,42 @@ paths:
               Обновление очереди сборки:
                 value:
                   type: store_collect_queue_updated_v1
-                  "payload": {
-                    "items": [
-                      {
-                        "store_code": "000101",
-                        "completed_at": "2023-12-31T00:00:00+03:00",
-                        "updated_at": "2023-12-31T00:00:00+03:00"
-                      },
-                      {
-                        "store_code": "000102",
-                        "completed_at": "2023-12-31T00:00:00+03:00",
-                        "updated_at": "2023-12-31T00:00:00+03:00"
-                      }
-                    ]
-                  }
+                  "payload":
+                    {
+                      "items":
+                        [
+                          {
+                            "store_code": "000101",
+                            "completed_at": "2023-12-31T00:00:00+03:00",
+                            "updated_at": "2023-12-31T00:00:00+03:00",
+                          },
+                          {
+                            "store_code": "000102",
+                            "completed_at": "2023-12-31T00:00:00+03:00",
+                            "updated_at": "2023-12-31T00:00:00+03:00",
+                          },
+                        ],
+                    }
                   created_at: 2023-12-31T00:00:00+03:00
               Обновление статуса магазинов:
                 value:
                   type: store_status_updated_v1
-                  "payload": {
-                    "items": [
-                      {
-                        "store_code": "012345",
-                        "status": "store_blocked",
-                        "updated_at": "2023-12-31T00:00:00+03:00"
-                      },
-                      {
-                        "store_code": "123450",
-                        "status": "store_unblocked",
-                        "updated_at": "2023-12-31T00:00:00+03:00"
-                      }
-                    ]
-                  }
+                  "payload":
+                    {
+                      "items":
+                        [
+                          {
+                            "store_code": "012345",
+                            "status": "store_blocked",
+                            "updated_at": "2023-12-31T00:00:00+03:00",
+                          },
+                          {
+                            "store_code": "123450",
+                            "status": "store_unblocked",
+                            "updated_at": "2023-12-31T00:00:00+03:00",
+                          },
+                        ],
+                    }
                   created_at: 2023-12-31T00:00:00+03:00
         required: true
       responses:
@@ -438,125 +442,125 @@ paths:
   /v1/last-mile/claims/create:
     post:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       tags:
         - Last Mile
       operationId: CreateClaim
-      description: 'Создание заявки на доставку'
+      description: "Создание заявки на доставку"
       parameters:
         - in: query
           name: request_id
-          description: 'Ключ идемпотентности запроса'
+          description: "Ключ идемпотентности запроса"
           required: true
           schema:
-            $ref: '#/components/schemas/param.IdempotencyKey'
+            $ref: "#/components/schemas/param.IdempotencyKey"
           x-oapi-codegen-extra-tags:
             validate: required,gt=10,lt=100
         - in: header
           name: X-Partner-ID
-          description: 'Идентификатор партнера из ГИС ГКЦ'
+          description: "Идентификатор партнера из ГИС ГКЦ"
           required: true
           schema:
-            $ref: '#/components/schemas/param.PartnerID'
+            $ref: "#/components/schemas/param.PartnerID"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/request.CreateClaim'
+              $ref: "#/components/schemas/request.CreateClaim"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.CreateClaim'
-          description: 'OK'
-        '400':
-          description: 'Bad Request'
-        '500':
-          description: 'Internal Server Error'
+                $ref: "#/components/schemas/response.CreateClaim"
+          description: "OK"
+        "400":
+          description: "Bad Request"
+        "500":
+          description: "Internal Server Error"
 
   /v1/last-mile/claims/cancel:
     post:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       tags:
         - Last Mile
       operationId: CancelClaim
-      description: 'Отменить заявку'
+      description: "Отменить заявку"
       parameters:
         - in: header
           name: X-Partner-ID
-          description: 'Идентификатор партнера из ГИС ГКЦ'
+          description: "Идентификатор партнера из ГИС ГКЦ"
           required: true
           schema:
-            $ref: '#/components/schemas/param.PartnerID'
+            $ref: "#/components/schemas/param.PartnerID"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/request.CancelClaim'
+              $ref: "#/components/schemas/request.CancelClaim"
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.CancelClaim'
-          description: 'OK'
-        '400':
-          description: 'Bad Request'
-        '500':
-          description: 'Internal Server Error'
+                $ref: "#/components/schemas/response.CancelClaim"
+          description: "OK"
+        "400":
+          description: "Bad Request"
+        "500":
+          description: "Internal Server Error"
 
   /v1/last-mile/claims/info:
     post:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       tags:
         - Last Mile
       operationId: ClaimsInfo
-      description: 'Информация по заявкам'
+      description: "Информация по заявкам"
       parameters:
         - in: header
           name: X-Partner-ID
-          description: 'Идентификатор партнера из ГИС ГКЦ'
+          description: "Идентификатор партнера из ГИС ГКЦ"
           required: true
           schema:
-            $ref: '#/components/schemas/param.PartnerID'
+            $ref: "#/components/schemas/param.PartnerID"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/request.ClaimsInfo'
+              $ref: "#/components/schemas/request.ClaimsInfo"
       responses:
-        '200':
-          description: 'OK'
+        "200":
+          description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.ClaimsInfo'
-        '400':
-          description: 'Bad Request'
+                $ref: "#/components/schemas/response.ClaimsInfo"
+        "400":
+          description: "Bad Request"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.BadRequest'
-        '409':
+                $ref: "#/components/schemas/response.BadRequest"
+        "409":
           description: "Conflict"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response.Conflict"
-        '500':
-          description: 'Internal Server Error'
+        "500":
+          description: "Internal Server Error"
 
   /v1/last-mile/claims/events:
     get:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       tags:
         - Last Mile
       operationId: ClaimsEvents
-      description: 'События по заявкам'
+      description: "События по заявкам"
       parameters:
         - in: query
           name: last_known_id
@@ -565,7 +569,7 @@ paths:
             Если не передан, то будут выданы изменения, начиная с самого первого.
           required: false
           schema:
-            $ref: '#/components/schemas/param.EventID'
+            $ref: "#/components/schemas/param.EventID"
         - in: query
           name: limit
           description: Максимальное количество событий в результатах.
@@ -578,141 +582,141 @@ paths:
             validate: lt=1000
         - in: header
           name: X-Partner-ID
-          description: 'Идентификатор партнера из ГИС ГКЦ'
+          description: "Идентификатор партнера из ГИС ГКЦ"
           required: true
           schema:
-            $ref: '#/components/schemas/param.PartnerID'
+            $ref: "#/components/schemas/param.PartnerID"
       responses:
-        '200':
-          description: 'OK'
+        "200":
+          description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.ClaimsEvents'
-        '400':
-          description: 'Bad Request'
+                $ref: "#/components/schemas/response.ClaimsEvents"
+        "400":
+          description: "Bad Request"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.BadRequest'
-        '500':
-          description: 'Internal Server Error'
+                $ref: "#/components/schemas/response.BadRequest"
+        "500":
+          description: "Internal Server Error"
 
   /v1/last-mile/claims/accept:
     post:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       tags:
         - Last Mile
       operationId: AcceptClaim
-      description: 'Принять заявку на доставку после расчета стоимости'
+      description: "Принять заявку на доставку после расчета стоимости"
       parameters:
         - in: header
           name: X-Partner-ID
-          description: 'Идентификатор партнера из ГИС ГКЦ'
+          description: "Идентификатор партнера из ГИС ГКЦ"
           required: true
           schema:
-            $ref: '#/components/schemas/param.PartnerID'
+            $ref: "#/components/schemas/param.PartnerID"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/request.AcceptClaim'
+              $ref: "#/components/schemas/request.AcceptClaim"
       responses:
-        '200':
-          description: 'OK'
-        '400':
-          description: 'Bad Request'
+        "200":
+          description: "OK"
+        "400":
+          description: "Bad Request"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.BadRequest'
-        '404':
-          description: 'Not Found'
+                $ref: "#/components/schemas/response.BadRequest"
+        "404":
+          description: "Not Found"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.NotFound'
-        '409':
-          description: 'Conflict'
+                $ref: "#/components/schemas/response.NotFound"
+        "409":
+          description: "Conflict"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.Conflict'
-        '500':
-          description: 'Internal Server Error'
+                $ref: "#/components/schemas/response.Conflict"
+        "500":
+          description: "Internal Server Error"
 
   /v1/last-mile/claims/update:
     patch:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       tags:
         - Last Mile
       operationId: UpdateClaim
-      description: 'Обновление заявки на доставку'
+      description: "Обновление заявки на доставку"
       parameters:
         - in: header
           name: X-Partner-ID
-          description: 'Идентификатор партнера из ГИС ГКЦ'
+          description: "Идентификатор партнера из ГИС ГКЦ"
           required: true
           schema:
-            $ref: '#/components/schemas/param.PartnerID'
+            $ref: "#/components/schemas/param.PartnerID"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/request.UpdateClaims'
+              $ref: "#/components/schemas/request.UpdateClaims"
       responses:
-        '200':
-          description: 'OK'
+        "200":
+          description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.UpdateClaims'
-        '400':
-          description: 'Bad Request'
+                $ref: "#/components/schemas/response.UpdateClaims"
+        "400":
+          description: "Bad Request"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.BadRequest'
-        '404':
-          description: 'Not Found'
+                $ref: "#/components/schemas/response.BadRequest"
+        "404":
+          description: "Not Found"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.NotFound'
-        '409':
-          description: 'Conflict'
+                $ref: "#/components/schemas/response.NotFound"
+        "409":
+          description: "Conflict"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/response.Conflict'
-        '500':
-          description: 'Internal Server Error'
+                $ref: "#/components/schemas/response.Conflict"
+        "500":
+          description: "Internal Server Error"
 
   /v1/magnit-post/pickup-points:
     get:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       summary: Получить список пунктов выдачи заказов
       operationId: getPickupPoints
       description: Метод позволяет получить список активных пунктов выдачи заказов.
       parameters:
-        - $ref: '#/components/parameters/pageNumber'
-        - $ref: '#/components/parameters/pageSize'
+        - $ref: "#/components/parameters/pageNumber"
+        - $ref: "#/components/parameters/pageSize"
       responses:
-        '200':
+        "200":
           description: Список пунктов выдачи заказов
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PickupPointsResponse'
-        '401':
+                $ref: "#/components/schemas/PickupPointsResponse"
+        "401":
           description: Authorization Required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Authorization Required
       tags:
@@ -720,7 +724,7 @@ paths:
   /v1/magnit-post/orders:
     post:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       operationId: createOrder
       summary: Создать заказ
       description: Метод позволяет создать новый заказ на доставку.
@@ -728,132 +732,131 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DeliveryOrderRequest'
+              $ref: "#/components/schemas/DeliveryOrderRequest"
       responses:
-        '201':
+        "201":
           description: Заказ на доставку успешно создан в системе "Магнит Маркет"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeliveryOrderResponse'
-        '400':
+                $ref: "#/components/schemas/DeliveryOrderResponse"
+        "400":
           description: Заказ на доставку не может быть корректно создан. Переданы некорректные данные
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: PickupPoint c key 63425 не существует
-        '401':
+        "401":
           description: Authorization Required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Authorization Required
       tags:
         - Magnit Post
   /v1/magnit-post/orders/{trackingNumber}:
-
     parameters:
-      - $ref: '#/components/parameters/trackingNumber'
+      - $ref: "#/components/parameters/trackingNumber"
     get:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       operationId: getOrder
       summary: Получить заказ по trackingNumber
       description: Метод позволяет получить данные заказа по трек-номер.
       responses:
-        '200':
+        "200":
           description: Информация о заказе в системе "Магнит Маркет"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeliveryOrderResponse'
-        '404':
+                $ref: "#/components/schemas/DeliveryOrderResponse"
+        "404":
           description: Заказ с указанным trackingNumber не найден
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Заказ с trackingNumber 325445758 не найден
-        '401':
+        "401":
           description: Authorization Required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Authorization Required
       tags:
         - Magnit Post
     delete:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       operationId: deleteOrder
       summary: Отменить заказ по trackingNumber
       description: Метод позволяет отменить заказ по идентификатору.
       responses:
-        '204':
+        "204":
           description: Заказ отменен
-        '404':
+        "404":
           description: Заказ с указанным trackingNumber не найден
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Заказ с trackingNumber 325445758 не найден
-        '400':
+        "400":
           description: Заказ с указанным trackingNumber не может быть отменен
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Заказ с trackingNumber 325445758 находится в статусе ISSUED и не может быть отменен.
-        '401':
+        "401":
           description: Authorization Required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Authorization Required
       tags:
         - Magnit Post
   /v1/magnit-post/orders/{trackingNumber}/status-history:
     parameters:
-      - $ref: '#/components/parameters/trackingNumber'
+      - $ref: "#/components/parameters/trackingNumber"
     get:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       operationId: getOrderStatusHistory
       summary: Получить историю статусов по заказу на доставку
       description: Метод позволяет получить историю изменения статусов заказа на доставку по trackingNumber.
       responses:
-        '200':
+        "200":
           description: История изменения статусов заказа в системе "Магнит Маркет"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeliveryOrderHistoryResponse'
-        '404':
+                $ref: "#/components/schemas/DeliveryOrderHistoryResponse"
+        "404":
           description: Заказ с указанным trackingNumber не найден
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Заказ с trackingNumber 325445758 не найден
-        '401':
+        "401":
           description: Authorization Required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Authorization Required
       tags:
@@ -861,7 +864,7 @@ paths:
   /v1/magnit-post/order-statuses:
     post:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       operationId: getOrdersStatuses
       summary: Получить актуальные статусы по нескольким заказам
       description: Метод позволяет получить актуальные статусы заказов на доставку, передав список trackingNumber
@@ -869,30 +872,852 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DeliveryOrderStatusesRequest'
+              $ref: "#/components/schemas/DeliveryOrderStatusesRequest"
       responses:
-        '200':
+        "200":
           description: Коллекция актуальных статусов по запрошенным заказам на доставку
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeliveryOrderStatusesResponse'
-        '401':
+                $ref: "#/components/schemas/DeliveryOrderStatusesResponse"
+        "401":
           description: Authorization Required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessage'
+                $ref: "#/components/schemas/ErrorMessage"
               example:
                 message: Authorization Required
       tags:
         - Magnit Post
+  #magnit-market-seller-api-begin
+  #magnit-market-seller-api-goods
+  /api/seller/v1/categories:
+    get:
+      description: REST эндпоинт для получения списка активных категорий
+      operationId: getActiveCategories
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExternalSellerCategoryDto'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Получение списка категорий
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/defined-characteristics:
+    post:
+      description: REST эндпоинт для получения списка характеристик
+      operationId: getDefinedCharacteristics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCharacteristicsRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExternalSellerCharacteristicsDto'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Получение списка характеристик
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/dictionary:
+    get:
+      description: REST эндопинт для получения списка словарей
+      operationId: getDictionaryValues
+      parameters:
+        - in: query
+          name: request
+          required: true
+          schema:
+            $ref: '#/components/schemas/GetDictionaryRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DictionaryResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Получение списка словарей
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/sku:
+    post:
+      description: REST эндпоинт для создания/обновления списка СКУ
+      operationId: createSku
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSkuRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateSkuResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Создание/обновление СКУ
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/sku/list:
+    post:
+      description: REST эндпоинт для получения списка СКУ
+      operationId: getSkuList
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkuListRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkuListResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Получение списка СКУ
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/sku/price:
+    post:
+      description: REST эндпоинт для обновления цен
+      operationId: update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PricesRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Обновление цен
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/sku/price/info:
+    post:
+      description: REST эндпоинт для получения данных по ценам
+      operationId: getPriceInfo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkuInfoRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkuInfoResponsePriceInfoResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Получение данных по ценам
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/sku/shops/{shop_id}/sku/archive:
+    post:
+      description: REST эндпоинт для архивации списка СКУ
+      operationId: archiveSkuList
+      parameters:
+        - in: path
+          name: shop_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkuArchiveRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkuInfoResponseSkuArchiveResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Архивация SKU
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/sku/shops/{shop_id}/sku/delete:
+    post:
+      description: REST эндпоинт для удаления списка СКУ
+      operationId: deleteProduct
+      parameters:
+        - in: path
+          name: shop_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: request
+          required: true
+          schema:
+            $ref: '#/components/schemas/ProductDeleteRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkuInfoResponseProductDeleteResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Удаление СКУ
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/sku/shops/{shop_id}/sku/unarchive:
+    post:
+      description: REST эндпоинт для разархивации списка СКУ
+      operationId: recoverSkuList
+      parameters:
+        - in: path
+          name: shop_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: request
+          required: true
+          schema:
+            $ref: '#/components/schemas/SkuArchiveRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkuInfoResponseSkuArchiveResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Разархивация СКУ
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/sku/stocks:
+    post:
+      description: REST эндпоинт для обновления остатков
+      operationId: updateStocks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Обновление остатков
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/sku/stocks/info:
+    post:
+      description: REST эндпоинт для получения информации об остатках
+      operationId: getStocksInfo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkuInfoRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkuInfoResponseStockInfoResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Получение информации об остатках
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/products/sku/tasks/{task_id}/status:
+    get:
+      description: REST эндпоинт для получения статуса задачи создания/обновления СКУ
+      operationId: getTaskStatus
+      parameters:
+        - in: path
+          name: task_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskStatusResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Получение статуса задачи создания/обновления СКУ
+      tags:
+        - Magnit Market Seller API
+      security:
+        - apiKeyAuth: []
+  #magnit-market-seller-api-lms
+  /api/seller/v1/orders/list:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Список заказов на сборку
+      description: >
+        Возвращает список заказов на сборку за указанный период времени — он
+        должен быть не более одного года.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceOrdersListRequest'
+        required: true
+      responses:
+        '200':
+          description: Список заказов на сборку
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceOrdersListResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/orders/list/unprocessed:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Список необработанных заказов на сборку
+      description: >
+        Возвращает список необработанных заказов на сборку за указанный период
+        времени — он должен быть не более одного года.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceOrdersUnprocessedRequest'
+        required: true
+      responses:
+        '200':
+          description: Список заказов на сборку
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceOrdersUnprocessedResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/orders/cancel-items:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Отмена части товаров из заказа
+      description: |
+        Отменяемый товар не должен быть распределен по посылкам. 
+
+        ⚠️ Это действие нельзя отменить
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceOrderCancelItemsRequest'
+        required: true
+      responses:
+        '200':
+          description: Данные по заказу на сборку
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceOrderCancelItemsResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/orders/cancel:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Отмена всего сборочного заказа
+      description: |
+        ⚠️ Это действие нельзя отменить
+
+        ⚠️ Заказ можно отменить, только до его подтверждения
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceOrderCancelRequest'
+        required: true
+      responses:
+        '200':
+          description: Список заказов на сборку
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceOrderCancelResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/orders/complete:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Подтверждение сборки заказа
+      description: >
+        Необходимо вызвать этот метод, чтобы посылки можно было добавить в
+        отгрузку
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceOrderCompleteRequest'
+        required: true
+      responses:
+        '200':
+          description: Список посылок по заказу
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceOrderCompleteResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/orders/parcels:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Передать разбиение на посылки
+      description: >
+        Позволяет передать разбиение заказа на посылки.
+
+
+        Метод можно использовать до перевода заказа в статус `ASSEMBLED` или
+        `CANCELED`   
+
+
+        ⚠️ Необходимо передавать все собранные, на данный момент, посылки в
+        каждом запросе.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceOrderParcelsRequest'
+        required: true
+      responses:
+        '200':
+          description: Посылки и их идентификаторы
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceOrderParcelsResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/parcels/set-marking:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Передать маркировку товаров внутри посылок
+      description: >
+        Передать маркировку можно до подтверждения сборки заказа
+
+
+        ⚠️ Маркетплейс не производит проверку и вывод марок из оборота.
+
+
+        ⚠️ Необходимо передавать маркировку сразу на все единицы товара (т.е.
+        равным quantity товаров)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceParcelsAddMarkingRequest'
+      responses:
+        '200':
+          description: Запрос успешно выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceParcelsAddMarkingResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/parcels/get-labels:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Получить этикетки для посылок
+      description: |
+        Метод возвращает этикетки для посылок в виде одного файла
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceParcelsLabelsRequest'
+      responses:
+        '200':
+          description: Запрос успешно выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceParcelsLabelsResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/parcels/cancel:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Отменить посылку вместе с товарами
+      description: >
+        Метод позволяет отменить собранную посылку, при этом также отменяться
+        товары находящиеся в ней.
+
+         ⚠️ Это действие нельзя отменить
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceParcelsCancelRequest'
+      responses:
+        '200':
+          description: Посылка успешно отменена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceParcelsCancelResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/parcels/list:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Список посылок
+      description: >
+        Возвращает список посылок за указанный период времени — он должен быть
+        не более одного года.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceParcelsListRequest'
+      responses:
+        '200':
+          description: Список заказов продавца
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceParcelsListResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/shipments/list:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Список отгрузок
+      description: >
+        Возвращает список отгрузок за указанный период времени — он должен быть
+        не более одного года.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceShipmentListRequest'
+      responses:
+        '200':
+          description: Список отгрузок
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceShipmentListResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/shipments/add-parcels:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Добавить посылки к отгрузке
+      description: |
+        Добавляет посылки к текущей незавершенной отгрузке
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceShipmentAddParcelsRequest'
+        required: true
+      responses:
+        '200':
+          description: Состав поставки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceShipmentAddParcelsResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/shipments/confirm:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Подтвердить отгрузку
+      description: |
+        Подтвердить отгрузку.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceShipmentsConfirmRequest'
+        required: true
+      responses:
+        '200':
+          description: Состав отгрузки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceShipmentsConfirmResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/shipments/get-documents:
+    post:
+      tags:
+        - Magnit Market Seller API
+      summary: Получить документы по отгрузке
+      description: |
+        Возвращает выбранный документ для отгрузки
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceShipmentGetDocumentsRequest'
+      responses:
+        '200':
+          description: Список отгрузок
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceShipmentGetDocumentsResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '401':
+          $ref: '#/components/responses/Marketplace401'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  #magnit-market-seller-api-end
 components:
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
       type: http
       scheme: bearer
-      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+      bearerFormat: JWT # optional, arbitrary value for documentation purposes
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
 
   parameters:
     trackingNumber:
@@ -925,7 +1750,6 @@ components:
         default: 100
 
   schemas:
-
     StoresPricesItemsV1:
       required:
         - items
@@ -962,7 +1786,7 @@ components:
           description: "Цена в копейках"
           example: 29999
         currency:
-          $ref: '#/components/schemas/CurrencyEnum'
+          $ref: "#/components/schemas/CurrencyEnum"
 
     StoresActionPriceV1:
       required:
@@ -976,7 +1800,7 @@ components:
           description: "Цена в копейках"
           example: 29999
         currency:
-          $ref: '#/components/schemas/CurrencyEnum'
+          $ref: "#/components/schemas/CurrencyEnum"
         started_at:
           type: string
           description: "Дата начала действия акционной цены в формате RFC3399"
@@ -1023,13 +1847,13 @@ components:
       type: object
       properties:
         type:
-          $ref: '#/components/schemas/EventEnum'
+          $ref: "#/components/schemas/EventEnum"
         payload:
           oneOf:
-            - $ref: '#/components/schemas/StoreBlockedEvent'
-            - $ref: '#/components/schemas/StoreUnblockedEvent'
-            - $ref: '#/components/schemas/StoreStatusUpdatedV1'
-            - $ref: '#/components/schemas/StoreCollectQueueUpdatedV1'
+            - $ref: "#/components/schemas/StoreBlockedEvent"
+            - $ref: "#/components/schemas/StoreUnblockedEvent"
+            - $ref: "#/components/schemas/StoreStatusUpdatedV1"
+            - $ref: "#/components/schemas/StoreCollectQueueUpdatedV1"
         created_at:
           type: string
           title: Время возникновения события
@@ -1040,10 +1864,10 @@ components:
       type: string
       description: Тип события
       enum:
-        - 'store_blocked'
-        - 'store_unblocked'
-        - 'store_collect_queue_updated_v1'
-        - 'store_status_updated_v1'
+        - "store_blocked"
+        - "store_unblocked"
+        - "store_collect_queue_updated_v1"
+        - "store_status_updated_v1"
 
     StoreStatusUpdatedV1:
       title: Набор актуальных статусов магазинов
@@ -1053,7 +1877,7 @@ components:
         - items
       properties:
         items:
-          $ref: '#/components/schemas/StoreStatusUpdatedItemV1'
+          $ref: "#/components/schemas/StoreStatusUpdatedItemV1"
 
     StoreStatusUpdatedItemV1:
       title: Обновление статуса магазина
@@ -1068,9 +1892,9 @@ components:
           example: "012345"
           description: "Идентификатор магазина в системе Магнит."
         status:
-          $ref: '#/components/schemas/StoreStatusEnum'
+          $ref: "#/components/schemas/StoreStatusEnum"
         updated_at:
-          $ref: '#/components/schemas/Datetime'
+          $ref: "#/components/schemas/Datetime"
 
     Datetime:
       type: string
@@ -1081,8 +1905,8 @@ components:
       type: string
       description: Статус магазина
       enum:
-        - 'store_blocked'
-        - 'store_unblocked'
+        - "store_blocked"
+        - "store_unblocked"
 
     StoreBlockedEvent:
       title: Магазин заблокирован
@@ -1112,10 +1936,9 @@ components:
       type: string
       description: Причина блокировки магазина в системе Магнит
       enum:
-        - 'REVISION'
-        - 'TECHNICAL_PROBLEMS'
-        - 'TOO_BUSY'
-
+        - "REVISION"
+        - "TECHNICAL_PROBLEMS"
+        - "TOO_BUSY"
 
     AuthRequest:
       required:
@@ -1165,17 +1988,17 @@ components:
           example: "123456"
           description: "Идентификатор магазина в системе Магнит. Используется для отправки заказа на сборку"
         customer:
-          $ref: '#/components/schemas/Customer'
+          $ref: "#/components/schemas/Customer"
         delivery:
           oneOf:
-            - $ref: '#/components/schemas/DeliveryPartner'
-            - $ref: '#/components/schemas/DeliveryMagnit'
+            - $ref: "#/components/schemas/DeliveryPartner"
+            - $ref: "#/components/schemas/DeliveryMagnit"
         collect:
-          $ref: '#/components/schemas/Collect'
+          $ref: "#/components/schemas/Collect"
         cart:
-          $ref: '#/components/schemas/CartRequest'
+          $ref: "#/components/schemas/CartRequest"
         price:
-          $ref: '#/components/schemas/OrderPrice'
+          $ref: "#/components/schemas/OrderPrice"
         comment:
           type: string
           description: "До 1000 символов"
@@ -1197,13 +2020,13 @@ components:
           example: "123456"
           description: "Идентификатор магазина в системе Магнит. Используется для отправки заказа на сборку"
         status:
-          $ref: '#/components/schemas/OrderStatus'
+          $ref: "#/components/schemas/OrderStatus"
         cart:
-          $ref: '#/components/schemas/Cart'
+          $ref: "#/components/schemas/Cart"
         collect:
-          $ref: '#/components/schemas/OrderCollect'
+          $ref: "#/components/schemas/OrderCollect"
         price:
-          $ref: '#/components/schemas/OrderPrice'
+          $ref: "#/components/schemas/OrderPrice"
         comment:
           type: string
           description: "До 1000 символов"
@@ -1214,8 +2037,7 @@ components:
         - status
       properties:
         status:
-          $ref: '#/components/schemas/OrderStatus'
-
+          $ref: "#/components/schemas/OrderStatus"
 
     OrderStatus:
       type: object
@@ -1224,9 +2046,9 @@ components:
         - updated_at
       properties:
         code:
-          $ref: '#/components/schemas/OrderStatusEnum'
+          $ref: "#/components/schemas/OrderStatusEnum"
         reason:
-          $ref: '#/components/schemas/OrderCancellationReasonEnum'
+          $ref: "#/components/schemas/OrderCancellationReasonEnum"
         updated_at:
           type: string
           description: "Дата последнего обновления статуса в RFC3339 с указанием часового пояса"
@@ -1239,7 +2061,7 @@ components:
         - updated_at
       properties:
         code:
-          $ref: '#/components/schemas/OrderStatusEnum'
+          $ref: "#/components/schemas/OrderStatusEnum"
         updated_at:
           type: string
           description: "Дата последнего обновления статуса в RFC3339 с указанием часового пояса"
@@ -1252,7 +2074,7 @@ components:
         - updated_at
       properties:
         code:
-          $ref: '#/components/schemas/OrderChangeStatusRequestEnum'
+          $ref: "#/components/schemas/OrderChangeStatusRequestEnum"
         updated_at:
           type: string
           description: "Дата последнего обновления статуса в RFC3339 с указанием часового пояса"
@@ -1309,7 +2131,7 @@ components:
       type: object
       properties:
         time_slot:
-          $ref: '#/components/schemas/DeliveryTimeSlot'
+          $ref: "#/components/schemas/DeliveryTimeSlot"
     DeliveryStatus:
       type: string
       enum:
@@ -1321,7 +2143,7 @@ components:
       description: "Доставка курьерами партнера"
       properties:
         time_slot:
-          $ref: '#/components/schemas/DeliveryTimeSlot'
+          $ref: "#/components/schemas/DeliveryTimeSlot"
 
     DeliveryMagnit:
       type: object
@@ -1332,11 +2154,11 @@ components:
         - coordinates
       properties:
         time_slot:
-          $ref: '#/components/schemas/DeliveryTimeSlot'
+          $ref: "#/components/schemas/DeliveryTimeSlot"
         price:
-          $ref: '#/components/schemas/DeliveryPrice'
+          $ref: "#/components/schemas/DeliveryPrice"
         coordinates:
-          $ref: '#/components/schemas/DeliveryCoordinates'
+          $ref: "#/components/schemas/DeliveryCoordinates"
         address:
           $ref: "#/components/schemas/DeliveryAddress"
 
@@ -1347,7 +2169,7 @@ components:
         - base
       properties:
         base:
-          $ref: '#/components/schemas/DeliveryBasePrice'
+          $ref: "#/components/schemas/DeliveryBasePrice"
     DeliveryTime:
       type: object
       required:
@@ -1441,10 +2263,10 @@ components:
         - strategy
       properties:
         strategy:
-          $ref: '#/components/schemas/IssueStrategyEnum'
+          $ref: "#/components/schemas/IssueStrategyEnum"
         payload:
           oneOf:
-            - $ref: '#/components/schemas/IssuePayloadEacTakerToCollect'
+            - $ref: "#/components/schemas/IssuePayloadEacTakerToCollect"
 
     IssuePayloadEacTakerToCollect:
       description: "Полезная нагрузка при получении заказа по коду выдачи"
@@ -1453,7 +2275,7 @@ components:
         - eac
       properties:
         eac:
-          $ref: '#/components/schemas/EAC'
+          $ref: "#/components/schemas/EAC"
 
     EAC:
       description: "ЭАПП - Электронный акт-приёма передачи, код выдачи"
@@ -1472,7 +2294,7 @@ components:
         - strategy
       properties:
         strategy:
-          $ref: '#/components/schemas/CollectReplacementStrategyEnum'
+          $ref: "#/components/schemas/CollectReplacementStrategyEnum"
         desired_at:
           description: "Желаемое время сборки заказа в RFC3339 с указанием часового пояса"
           type: string
@@ -1493,13 +2315,11 @@ components:
         - MAGNIT
         - PARTNER
 
-
     CollectReplacementStrategyEnum:
       description: "call_to_customer - всегда звонить клиенту для согласования"
       type: string
       enum:
         - call_to_customer
-
 
     Promo:
       type: object
@@ -1508,7 +2328,7 @@ components:
         - value
       properties:
         type:
-          $ref: '#/components/schemas/PromoTypeEnum'
+          $ref: "#/components/schemas/PromoTypeEnum"
         name:
           type: string
           example: "Первый заказ"
@@ -1516,13 +2336,12 @@ components:
           type: string
           example: "10, SORRYCODE"
 
-
     PromoTypeEnum:
       type: string
       enum:
-        - 'PROMOCODE'
-        - 'PENSIONER'
-        - 'EXAMPLE'
+        - "PROMOCODE"
+        - "PENSIONER"
+        - "EXAMPLE"
 
     Payment:
       type: object
@@ -1538,7 +2357,7 @@ components:
         - total
       properties:
         total:
-          $ref: '#/components/schemas/OrderTotalPrice'
+          $ref: "#/components/schemas/OrderTotalPrice"
 
     CartRequest:
       description: "Корзина заказа"
@@ -1549,7 +2368,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/CartItemRequest'
+            $ref: "#/components/schemas/CartItemRequest"
 
     Cart:
       description: "Корзина заказа"
@@ -1560,7 +2379,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/CartItem'
+            $ref: "#/components/schemas/CartItem"
 
     CartItemRequest:
       type: object
@@ -1584,9 +2403,9 @@ components:
           type: integer
           example: 1500
         price:
-          $ref: '#/components/schemas/ProductPrice'
+          $ref: "#/components/schemas/ProductPrice"
         unit:
-          $ref: '#/components/schemas/UnitEnum'
+          $ref: "#/components/schemas/UnitEnum"
 
     CartItem:
       type: object
@@ -1610,14 +2429,14 @@ components:
           type: integer
           example: 1500
         price:
-          $ref: '#/components/schemas/ProductPrice'
+          $ref: "#/components/schemas/ProductPrice"
         unit:
-          $ref: '#/components/schemas/UnitEnum'
+          $ref: "#/components/schemas/UnitEnum"
         marking:
           description: "Информация о маркировке единиц товара."
           type: array
           items:
-            $ref: '#/components/schemas/Marking'
+            $ref: "#/components/schemas/Marking"
 
     DeliveryBasePrice:
       type: object
@@ -1643,7 +2462,7 @@ components:
     OrderTotalPrice:
       description: Полная стоимость заказа в копейках. Сколько денег будет списано с клиента за заказ.
       allOf:
-        - $ref: '#/components/schemas/BasePrice'
+        - $ref: "#/components/schemas/BasePrice"
 
     ProductPrice:
       description: "Стоимость одной позиции, включая скидки, если они есть"
@@ -1652,73 +2471,72 @@ components:
         - original
       properties:
         original:
-          $ref: '#/components/schemas/BasePrice'
+          $ref: "#/components/schemas/BasePrice"
 
     TaxTypeEnum:
       type: string
-      description: 'Ставка НДС'
+      description: "Ставка НДС"
       enum:
-        - 'no_vat'
-        - 'vat_0'
-        - 'vat_10'
-        - 'vat_20'
-        - 'vat_10/110'
-        - 'vat_20/120'
+        - "no_vat"
+        - "vat_0"
+        - "vat_10"
+        - "vat_20"
+        - "vat_10/110"
+        - "vat_20/120"
 
     CurrencyEnum:
       description: "Валюта"
       type: string
       enum:
-        - 'RUB'
+        - "RUB"
 
     VatEnum:
       type: string
       enum:
-        - 'NO_VAT'
-        - 'VAT_0'
-        - 'VAT_10_110'
-        - 'VAT_20_120'
-        - 'VAT_18_118'
+        - "NO_VAT"
+        - "VAT_0"
+        - "VAT_10_110"
+        - "VAT_20_120"
+        - "VAT_18_118"
 
     ErrorCodeEnum:
       type: string
       enum:
-        - 'SOME_ERROR'
-        - 'FORBIDDEN'
-        - 'ORDER_NOT_FOUND'
-        - 'INTERNAL_ERROR'
-        - 'ARTICLE_NOT_FOUND'
+        - "SOME_ERROR"
+        - "FORBIDDEN"
+        - "ORDER_NOT_FOUND"
+        - "INTERNAL_ERROR"
+        - "ARTICLE_NOT_FOUND"
 
     UnitEnum:
       description: "Размерность товара, весовой или штучный"
       type: string
       enum:
-        - 'weight'
-        - 'apiece'
+        - "weight"
+        - "apiece"
 
     OrderStatusEnum:
       type: string
       enum:
-        - 'order_created'
-        - 'order_on_work'
-        - 'order_ready'
-        - 'order_issued'
-        - 'order_delivered'
-        - 'order_cancelled'
-        - 'order_client_refused'
-
+        - "order_created"
+        - "order_on_work"
+        - "order_ready"
+        - "order_issued"
+        - "order_delivered"
+        - "order_cancelled"
+        - "order_client_refused"
 
     OrderChangeStatusRequestEnum:
       type: string
       enum:
-        - 'order_delivered'
+        - "order_delivered"
 
     OrderNotificationTypeEnum:
       type: string
       enum:
-        - 'order_paid'
-        - 'order_ready_to_pick_up'
-        - 'order_picked_up'
+        - "order_paid"
+        - "order_ready_to_pick_up"
+        - "order_picked_up"
 
     Stores:
       type: object
@@ -1726,7 +2544,7 @@ components:
         stores:
           type: array
           items:
-            $ref: '#/components/schemas/Store'
+            $ref: "#/components/schemas/Store"
 
     Store:
       type: object
@@ -1736,7 +2554,7 @@ components:
         code:
           type: string
         flags:
-          $ref: '#/components/schemas/StoreFlags'
+          $ref: "#/components/schemas/StoreFlags"
 
     StoreFlags:
       type: object
@@ -1766,15 +2584,13 @@ components:
       properties:
         qnty:
           type: integer
-          description: 'Количество товара в штуках или граммах, если товар весовой'
+          description: "Количество товара в штуках или граммах, если товар весовой"
         cis:
           type: string
-          description: 'Код «Честного знака» без криптохвоста.'
+          description: "Код «Честного знака» без криптохвоста."
           example: '0104603731968500215jMa!Q\\u001d93rh1e'
         request:
-          $ref: '#/components/schemas/MarkingRequest'
-
-
+          $ref: "#/components/schemas/MarkingRequest"
 
     MarkingRequest:
       description: "Объект запроса валидации марки"
@@ -1794,27 +2610,27 @@ components:
         - status
       properties:
         status:
-          $ref: '#/components/schemas/OrderChangeRequestStatus'
+          $ref: "#/components/schemas/OrderChangeRequestStatus"
 
     OrderCancellationReasonEnum:
       description: "Причина отмены заказа"
       type: string
       enum:
-        - 'test'
-        - 'customer_no_product_needed'
-        - 'customer_delivery_too_expensive'
-        - 'customer_impossible_order_change'
-        - 'customer_no_reason'
-        - 'assembly_is_late'
-        - 'assembly_no_reason'
-        - 'delivery_is_late'
-        - 'delivery_no_courier'
-        - 'payment_not_passed'
-        - 'order_not_picked_up'
-        - 'delivery_order_mixed'
-        - 'delivery_courier_fault'
-        - 'fraud'
-        - 'other'
+        - "test"
+        - "customer_no_product_needed"
+        - "customer_delivery_too_expensive"
+        - "customer_impossible_order_change"
+        - "customer_no_reason"
+        - "assembly_is_late"
+        - "assembly_no_reason"
+        - "delivery_is_late"
+        - "delivery_no_courier"
+        - "payment_not_passed"
+        - "order_not_picked_up"
+        - "delivery_order_mixed"
+        - "delivery_courier_fault"
+        - "fraud"
+        - "other"
 
     VerifyEACRequest:
       type: object
@@ -1828,14 +2644,13 @@ components:
       type: object
       properties:
         result:
-          $ref: '#/components/schemas/VerifyEACResult'
-
+          $ref: "#/components/schemas/VerifyEACResult"
 
     VerifyEACResult:
       type: object
       properties:
         verificationResult:
-          $ref: '#/components/schemas/VerifyEACStatusEnum'
+          $ref: "#/components/schemas/VerifyEACStatusEnum"
         attemptsLeft:
           type: integer
           description: Попыток осталось
@@ -1843,19 +2658,19 @@ components:
     VerifyEACStatusEnum:
       type: string
       enum:
-        - 'ACCEPTED'
-        - 'REJECTED'
-        - 'NEED_UPDATE'
+        - "ACCEPTED"
+        - "REJECTED"
+        - "NEED_UPDATE"
 
     EACStrategyEnum:
       type: string
       enum:
-        - 'taker_to_collect'
+        - "taker_to_collect"
 
     IssueStrategyEnum:
       type: string
       enum:
-        - 'eac_taker_to_collect'
+        - "eac_taker_to_collect"
 
     OrderCreateResponse:
       description: Успешное создание заказа
@@ -1871,7 +2686,7 @@ components:
           type: string
           description: Идентификатор заказа в системе Магнита
         issue:
-          $ref: '#/components/schemas/IssueOrderCreateResponse'
+          $ref: "#/components/schemas/IssueOrderCreateResponse"
 
     ErrorResponse:
       type: object
@@ -1880,7 +2695,7 @@ components:
         - message
       properties:
         code:
-          $ref: '#/components/schemas/ErrorCodeEnum'
+          $ref: "#/components/schemas/ErrorCodeEnum"
         message:
           type: string
           description: Текст ошибки
@@ -1893,7 +2708,7 @@ components:
         - items
       properties:
         items:
-          $ref: '#/components/schemas/StoreCollectQueueUpdatedItemV1'
+          $ref: "#/components/schemas/StoreCollectQueueUpdatedItemV1"
 
     StoreCollectQueueUpdatedItemV1:
       title: Набор актуальных значений очередей сборки
@@ -1984,7 +2799,7 @@ components:
       x-go-type: uuid.UUID
 
     request.CreateClaim:
-      $ref: '#/components/schemas/Claim'
+      $ref: "#/components/schemas/Claim"
 
     request.CancelClaim:
       type: object
@@ -1992,9 +2807,9 @@ components:
         - claim_id
       properties:
         claim_id:
-          $ref: '#/components/schemas/ClaimID'
+          $ref: "#/components/schemas/ClaimID"
         cancel_reason:
-          $ref: '#/components/schemas/CancelByPartnerReason'
+          $ref: "#/components/schemas/CancelByPartnerReason"
 
     request.AcceptClaim:
       type: object
@@ -2002,7 +2817,7 @@ components:
         - claim_id
       properties:
         claim_id:
-          $ref: '#/components/schemas/ClaimID'
+          $ref: "#/components/schemas/ClaimID"
 
     request.ClaimsInfo:
       type: object
@@ -2012,7 +2827,7 @@ components:
         claim_ids:
           type: array
           items:
-            $ref: '#/components/schemas/ClaimID'
+            $ref: "#/components/schemas/ClaimID"
 
     request.UpdateClaims:
       type: array
@@ -2021,7 +2836,7 @@ components:
       x-oapi-codegen-extra-tags:
         validate: required,gt=0,dive,max=100
       items:
-        $ref: '#/components/schemas/UpdateClaim'
+        $ref: "#/components/schemas/UpdateClaim"
 
     request.PushForwardClaim:
       type: object
@@ -2029,7 +2844,7 @@ components:
         - claim_id
       properties:
         claim_id:
-          $ref: '#/components/schemas/ClaimID'
+          $ref: "#/components/schemas/ClaimID"
 
     response.CreateClaim:
       type: object
@@ -2037,7 +2852,7 @@ components:
         - claim_id
       properties:
         claim_id:
-          $ref: '#/components/schemas/ClaimID'
+          $ref: "#/components/schemas/ClaimID"
 
     response.CancelClaim:
       type: object
@@ -2045,7 +2860,7 @@ components:
         - claim_id
       properties:
         claim_id:
-          $ref: '#/components/schemas/ClaimID'
+          $ref: "#/components/schemas/ClaimID"
 
     response.ClaimsInfo:
       type: object
@@ -2055,17 +2870,17 @@ components:
         claims:
           type: array
           items:
-            $ref: '#/components/schemas/Claim'
+            $ref: "#/components/schemas/Claim"
 
     response.ClaimsEvents:
       type: array
       items:
-        $ref: '#/components/schemas/ClaimsEvent'
+        $ref: "#/components/schemas/ClaimsEvent"
 
     response.UpdateClaims:
       type: array
       items:
-        $ref: '#/components/schemas/UpdateClaimStatus'
+        $ref: "#/components/schemas/UpdateClaimStatus"
 
     response.Conflict:
       type: object
@@ -2080,16 +2895,16 @@ components:
       properties:
         code:
           type: string
-          description: 'Тип ошибки валидации'
+          description: "Тип ошибки валидации"
           enum:
-            - 'INVALID_SCHEMA'
-            - 'INVALID_FIELD'
-            - 'OTHER_VALIDATION_ERRORS'
+            - "INVALID_SCHEMA"
+            - "INVALID_FIELD"
+            - "OTHER_VALIDATION_ERRORS"
         details:
           type: array
           items:
             type: string
-            description: 'Описание'
+            description: "Описание"
             x-oapi-codegen-extra-tags:
               validate: min=1,dive
 
@@ -2109,7 +2924,7 @@ components:
             - push_successful
             - not_found
         claim_status:
-          $ref: '#/components/schemas/ClaimStatus'
+          $ref: "#/components/schemas/ClaimStatus"
 
     response.NotFound:
       type: object
@@ -2141,7 +2956,7 @@ components:
           delivery_arrived - курьер прибыл в точку Б.
           returning - курьер едет обратно в точку А для возврата товара
           return_arrived - курьер прибыл в точку А для возврата товара 
-        
+
         Терминальные статусы:
           delivery_finished - курьер передал заказ клиенту. Доставка выполнена.
           delivery_failed - курьер не смог доставить заказ.
@@ -2176,9 +2991,9 @@ components:
         - status
       properties:
         status:
-          $ref: '#/components/schemas/ClaimStatus'
+          $ref: "#/components/schemas/ClaimStatus"
         cancel_reason:
-          $ref: '#/components/schemas/CancelReason'
+          $ref: "#/components/schemas/CancelReason"
 
     CourierInfo:
       type: object
@@ -2216,22 +3031,22 @@ components:
         items:
           $ref: "#/components/schemas/Items"
         due_time:
-          $ref: '#/components/schemas/DateTime'
+          $ref: "#/components/schemas/DateTime"
         route_points:
           description: "Точки получения заказа и назначения."
           type: array
           items:
-            $ref: '#/components/schemas/RoutePoint'
+            $ref: "#/components/schemas/RoutePoint"
           x-oapi-codegen-extra-tags:
             validate: required,len=2,dive
         state:
-          $ref: '#/components/schemas/ClaimState'
+          $ref: "#/components/schemas/ClaimState"
         courier_info:
-          $ref: '#/components/schemas/CourierInfo'
+          $ref: "#/components/schemas/CourierInfo"
         estimation:
-          $ref: '#/components/schemas/Estimation'
+          $ref: "#/components/schemas/Estimation"
         need_return:
-          description: 'Нужна ли обратная доставка в случае, если заказ доставить не удалось'
+          description: "Нужна ли обратная доставка в случае, если заказ доставить не удалось"
           type: boolean
         comment:
           description: Комментарий к заказу
@@ -2301,13 +3116,13 @@ components:
           example: 250000
         estimated_arrival:
           type: string
-          description: 'Ожидаемое время доставки в формате (RFC3339 формат : %Y-%M-%DT%h:%m:%sZ)'
-          example: '2023-03-20T15:04:05Z'
+          description: "Ожидаемое время доставки в формате (RFC3339 формат : %Y-%M-%DT%h:%m:%sZ)"
+          example: "2023-03-20T15:04:05Z"
           format: date-time
         expected_courier_arrival:
           type: string
-          description: 'Ожидаемое время прибытия курьера за заказом (RFC3339 формат : %Y-%M-%DT%h:%m:%sZ)'
-          example: '2023-03-20T15:04:05Z'
+          description: "Ожидаемое время прибытия курьера за заказом (RFC3339 формат : %Y-%M-%DT%h:%m:%sZ)"
+          example: "2023-03-20T15:04:05Z"
           format: date-time
 
     RoutePointType:
@@ -2330,13 +3145,13 @@ components:
         - contact
       properties:
         point_type:
-          $ref: '#/components/schemas/RoutePointType'
+          $ref: "#/components/schemas/RoutePointType"
         address:
           $ref: "#/components/schemas/Address"
         contact:
           $ref: "#/components/schemas/Contact"
         transfer_code:
-          $ref: '#/components/schemas/TransferCode'
+          $ref: "#/components/schemas/TransferCode"
 
     Address:
       type: object
@@ -2406,8 +3221,8 @@ components:
 
     DateTime:
       type: string
-      description: 'Дата/время в формате (RFC3339 формат : %Y-%M-%DT%h:%m:%sZ)'
-      example: '2023-03-20T15:04:05Z'
+      description: "Дата/время в формате (RFC3339 формат : %Y-%M-%DT%h:%m:%sZ)"
+      example: "2023-03-20T15:04:05Z"
       format: date-time
 
     ClaimsEvent:
@@ -2420,12 +3235,12 @@ components:
           type: string
           format: uuid
         claim_id:
-          $ref: '#/components/schemas/ClaimID'
+          $ref: "#/components/schemas/ClaimID"
         event_time:
-          $ref: '#/components/schemas/DateTime'
+          $ref: "#/components/schemas/DateTime"
         event:
           oneOf:
-            - $ref: '#/components/schemas/ClaimsEventStatusChanged'
+            - $ref: "#/components/schemas/ClaimsEventStatusChanged"
 
     ClaimsEventStatusChanged:
       description: Событие по заявке на доставку
@@ -2434,11 +3249,11 @@ components:
       type: object
       properties:
         new_status:
-          $ref: '#/components/schemas/ClaimStatus'
+          $ref: "#/components/schemas/ClaimStatus"
         payload:
           oneOf:
-            - $ref: '#/components/schemas/CourierInfo'
-            - $ref: '#/components/schemas/CancelReason'
+            - $ref: "#/components/schemas/CourierInfo"
+            - $ref: "#/components/schemas/CancelReason"
 
     CancelReason:
       type: object
@@ -2450,8 +3265,8 @@ components:
         code:
           type: string
           oneOf:
-            - $ref: '#/components/schemas/CancelByPartnerReasonCode'
-            - $ref: '#/components/schemas/CancelByServiceReasonCode'
+            - $ref: "#/components/schemas/CancelByPartnerReasonCode"
+            - $ref: "#/components/schemas/CancelByServiceReasonCode"
         message:
           type: string
           description: Описание причины отмены.
@@ -2484,7 +3299,7 @@ components:
         - code
       properties:
         code:
-          $ref: '#/components/schemas/CancelByPartnerReasonCode'
+          $ref: "#/components/schemas/CancelByPartnerReasonCode"
         message:
           type: string
           description: Описание причины отмены.
@@ -2523,7 +3338,7 @@ components:
         - route_points
       properties:
         claim_id:
-          $ref: '#/components/schemas/ClaimID'
+          $ref: "#/components/schemas/ClaimID"
         route_points:
           type: array
           description: "Точки получения заказа и назначения."
@@ -2534,9 +3349,9 @@ components:
               - transfer_code
             properties:
               point_type:
-                $ref: '#/components/schemas/RoutePointType'
+                $ref: "#/components/schemas/RoutePointType"
               transfer_code:
-                $ref: '#/components/schemas/TransferCode'
+                $ref: "#/components/schemas/TransferCode"
               address:
                 type: object
                 required:
@@ -2561,23 +3376,23 @@ components:
         - max_delivery_distance
       properties:
         expected_courier_arrival:
-          $ref: '#/components/schemas/PartnerConfig.ExpectedCourierArrival'
+          $ref: "#/components/schemas/PartnerConfig.ExpectedCourierArrival"
         max_performer_search_time:
-          $ref: '#/components/schemas/PartnerConfig.MaxPerformerSearchTime'
+          $ref: "#/components/schemas/PartnerConfig.MaxPerformerSearchTime"
         sla:
-          $ref: '#/components/schemas/PartnerConfig.Sla'
+          $ref: "#/components/schemas/PartnerConfig.Sla"
         max_order_accept_time:
-          $ref: '#/components/schemas/PartnerConfig.MaxOrderAcceptTime'
+          $ref: "#/components/schemas/PartnerConfig.MaxOrderAcceptTime"
         max_order_weight:
-          $ref: '#/components/schemas/PartnerConfig.MaxOrderWeight'
+          $ref: "#/components/schemas/PartnerConfig.MaxOrderWeight"
         max_delivery_distance:
-          $ref: '#/components/schemas/PartnerConfig.MaxDeliveryDistance'
+          $ref: "#/components/schemas/PartnerConfig.MaxDeliveryDistance"
         delivery_provider:
-          $ref: '#/components/schemas/PartnerConfig.DeliveryProvider'
+          $ref: "#/components/schemas/PartnerConfig.DeliveryProvider"
         deferred_pickup_point_arrival_intervals:
           type: array
           items:
-            $ref: '#/components/schemas/PartnerConfig.PickupPointArrivalInterval'
+            $ref: "#/components/schemas/PartnerConfig.PickupPointArrivalInterval"
       x-oapi-codegen-extra-tags:
         validate: dive
 
@@ -2596,7 +3411,6 @@ components:
           type: string
           description: |
             верхняя граница интервала отложенной отправки события PickupPointArrivalInterval
-    
 
     PartnerConfig.ExpectedCourierArrival:
       type: string
@@ -2647,7 +3461,7 @@ components:
         - status
       properties:
         claim_id:
-          $ref: '#/components/schemas/ClaimID'
+          $ref: "#/components/schemas/ClaimID"
         status:
           description: |
             Статус обновления по конкретной заявке:
@@ -2672,9 +3486,9 @@ components:
         pickupPoints:
           type: array
           items:
-            $ref: '#/components/schemas/PickupPoint'
+            $ref: "#/components/schemas/PickupPoint"
         pager:
-          $ref: '#/components/schemas/Pager'
+          $ref: "#/components/schemas/Pager"
     DeliveryOrderRequest:
       type: object
       description: Данные для создания заказа на доставку
@@ -2689,11 +3503,11 @@ components:
           type: string
           example: DO-2343423432
         payment:
-          $ref: '#/components/schemas/MagnitPostPayment'
+          $ref: "#/components/schemas/MagnitPostPayment"
         delivery:
-          $ref: '#/components/schemas/MagnitPostDelivery'
+          $ref: "#/components/schemas/MagnitPostDelivery"
         characteristic:
-          $ref: '#/components/schemas/ParcelCharacteristic'
+          $ref: "#/components/schemas/ParcelCharacteristic"
     DeliveryOrderResponse:
       type: object
       description: Информация о заказе на доставку в системе "Магнит Маркет"
@@ -2711,13 +3525,13 @@ components:
           type: string
           example: 1234
         status:
-          $ref: '#/components/schemas/DeliveryOrderStatus'
+          $ref: "#/components/schemas/DeliveryOrderStatus"
         payment:
-          $ref: '#/components/schemas/MagnitPostPayment'
+          $ref: "#/components/schemas/MagnitPostPayment"
         delivery:
-          $ref: '#/components/schemas/MagnitPostDelivery'
+          $ref: "#/components/schemas/MagnitPostDelivery"
         characteristic:
-          $ref: '#/components/schemas/ParcelCharacteristic'
+          $ref: "#/components/schemas/ParcelCharacteristic"
     DeliveryOrderStatusesRequest:
       type: object
       description: Список trackingNumber
@@ -2733,7 +3547,7 @@ components:
     DeliveryOrderStatusesResponse:
       type: array
       items:
-        $ref: '#/components/schemas/DeliveryOrderStatusInfo'
+        $ref: "#/components/schemas/DeliveryOrderStatusInfo"
     DeliveryOrderHistoryResponse:
       type: object
       description: История изменения статусов заказа на доставку
@@ -2748,7 +3562,7 @@ components:
             type: object
             properties:
               status:
-                $ref: '#/components/schemas/DeliveryOrderStatus'
+                $ref: "#/components/schemas/DeliveryOrderStatus"
               timestamp:
                 type: number
                 format: int64
@@ -2764,7 +3578,7 @@ components:
           description: Трек-номер заказа на доставку
           example: 021458724
         status:
-          $ref: '#/components/schemas/DeliveryOrderStatus'
+          $ref: "#/components/schemas/DeliveryOrderStatus"
     PickupPoint:
       type: object
       properties:
@@ -2796,10 +3610,10 @@ components:
             example: +7 (800) 700-96-16
         workHours:
           description: Расписание работы ПВЗ
-          $ref: '#/components/schemas/WorkHours'
+          $ref: "#/components/schemas/WorkHours"
         coordinates:
           description: Координаты
-          $ref: '#/components/schemas/PickupPointCoordinates'
+          $ref: "#/components/schemas/PickupPointCoordinates"
 
     PickupPointCoordinates:
       type: object
@@ -2821,7 +3635,7 @@ components:
     WorkHours:
       type: array
       items:
-        $ref: '#/components/schemas/DayWorkHours'
+        $ref: "#/components/schemas/DayWorkHours"
       minItems: 1
       maxItems: 7
     DayWorkHours:
@@ -2829,7 +3643,7 @@ components:
       description: Часы работы
       properties:
         day:
-          $ref: '#/components/schemas/Week'
+          $ref: "#/components/schemas/Week"
         from:
           description: Открытие
           type: string
@@ -2841,38 +3655,31 @@ components:
     Week:
       type: string
       description: День недели
-      enum: [
-        MON,
-        TUE,
-        WED,
-        THU,
-        FRI,
-        SAT,
-        SUN
-      ]
+      enum: [MON, TUE, WED, THU, FRI, SAT, SUN]
     DeliveryOrderStatus:
       type: string
       description: Статус заказа на доставку
-      enum: [
-        NEW,
-        CREATED,
-        DELIVERING_STARTED,
-        ACCEPTED_AT_POINT,
-        IN_COURIER_DELIVERY,
-        ISSUED,
-        DESTROYED,
-        SENT_TO_SENDER,
-        ACCEPTED_AT_WAREHOUSE,
-        REMOVED,
-        WAITING_RETURN,
-        RETURN_INITIATED,
-        RETURN_SEND_TO_WAREHOUSE,
-        POSSIBLY_DEFECTED,
-        DEFECTED,
-        RETURN_ACCEPTED_AT_WAREHOUSE,
-        RETURNED_TO_PROVIDER,
-        CANCELED;
-      ]
+      enum:
+        [
+          NEW,
+          CREATED,
+          DELIVERING_STARTED,
+          ACCEPTED_AT_POINT,
+          IN_COURIER_DELIVERY,
+          ISSUED,
+          DESTROYED,
+          SENT_TO_SENDER,
+          ACCEPTED_AT_WAREHOUSE,
+          REMOVED,
+          WAITING_RETURN,
+          RETURN_INITIATED,
+          RETURN_SEND_TO_WAREHOUSE,
+          POSSIBLY_DEFECTED,
+          DEFECTED,
+          RETURN_ACCEPTED_AT_WAREHOUSE,
+          RETURNED_TO_PROVIDER,
+          CANCELED;,
+        ]
       example: CREATED
     MagnitPostPayment:
       type: object
@@ -2897,7 +3704,7 @@ components:
           type: string
           example: 63933
         recipient:
-          $ref: '#/components/schemas/Recipient'
+          $ref: "#/components/schemas/Recipient"
     Recipient:
       type: object
       description: Информация о получателе заказа
@@ -2989,6 +3796,1296 @@ components:
           format: int32
           example: 100
     #magnit-post-end
+    #magnit-market-seller-api-schema-begin
+    #magnit-market-seller-api-schema-goods
+    ApiErrorResponse:
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code
+        detailMessage:
+          type: string
+          deprecated: true
+        message:
+          type: string
+          description: Error message
+        payload:
+          type: object
+    CategoryCharacteristicsRequest:
+      required:
+        - category_ids
+      type: object
+      properties:
+        category_ids:
+          type: array
+          description: >-
+            List of category IDs to fetch characteristics for. These IDs will be
+            processed to retrieve the corresponding characteristics only for
+            active categories. Only IDs of categories marked as active will be
+            considered.
+          example:
+            - 123123
+            - 123124
+          items:
+            type: integer
+            description: >-
+              List of category IDs to fetch characteristics for. These IDs will
+              be processed to retrieve the corresponding characteristics only
+              for active categories. Only IDs of categories marked as active
+              will be considered.
+            format: int64
+    CharacteristicAttribute:
+      required:
+        - id
+        - title
+        - value
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор характеристики
+          format: int64
+          example: 101
+        title:
+          type: string
+          description: Название или заголовок характеристики
+          example: Цвет
+        value:
+          type: string
+          description: Значение характеристики
+          example: Красный
+      description: Список характеристик, связанных со словарем
+    CreateSkuRequest:
+      type: object
+      properties:
+        sku_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuRequest'
+    CreateSkuResponse:
+      type: object
+      properties:
+        task_id:
+          type: integer
+          format: int64
+    DictionaryResponse:
+      required:
+        - characteristic_attributes
+        - characteristic_title
+        - dictionary_id
+        - pagination
+        - system_characteristic
+      type: object
+      properties:
+        characteristic_attributes:
+          type: array
+          description: Список характеристик, связанных со словарем
+          items:
+            $ref: '#/components/schemas/CharacteristicAttribute'
+        characteristic_title:
+          type: string
+          description: Название характеристики, связанной со словарем
+          example: Размер
+        dictionary_id:
+          type: integer
+          description: Уникальный идентификатор словаря
+          format: int64
+          example: 1
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        system_characteristic:
+          type: boolean
+          description: Флаг, указывающий, является ли характеристика системной
+          example: true
+    ErrorInfo:
+      type: object
+      properties:
+        attribute_error:
+          type: string
+        message:
+          type: string
+        seller_sku_id:
+          type: integer
+          format: int32
+        status:
+          type: string
+    ExternalSellerCategoryDto:
+      required:
+        - category_id
+        - category_string_path
+        - category_title
+      type: object
+      properties:
+        category_id:
+          type: integer
+          description: Unique identifier of the category
+          format: int64
+          example: 123
+        category_string_path:
+          type: string
+          description: >-
+            Full path of the category, showing hierarchy from parent to current
+            category, separated by '->'
+          example: Electronics -> Computers -> Laptops
+        category_title:
+          type: string
+          description: The name of the category
+          example: Laptops
+    ExternalSellerCharacteristicsDto:
+      required:
+        - category_id
+        - category_title
+        - defined_characteristic
+        - product_filter
+      type: object
+      properties:
+        category_id:
+          type: integer
+          description: Unique identifier of the category
+          format: int64
+          example: 123
+        category_title:
+          type: string
+          description: Name of the category
+          example: Laptops
+        defined_characteristic:
+          type: array
+          description: Defined characteristics of the category
+          items:
+            $ref: '#/components/schemas/SkuCharacteristicCategoryDto'
+        product_filter:
+          type: array
+          description: Product filter characteristics of the category
+          items:
+            $ref: '#/components/schemas/SkuCharacteristicCategoryDto'
+        sku_filter:
+          type: array
+          description: SKU filter characteristics of the category
+          items:
+            $ref: '#/components/schemas/SkuCharacteristicCategoryDto'
+    GenericResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          readOnly: true
+          example: 'null'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiErrorResponse'
+        payload:
+          type: object
+          description: Response payload
+        timestamp:
+          type: string
+          format: date-time
+        trace:
+          type: string
+    GetDictionaryRequest:
+      type: object
+      properties:
+        dictionary_id:
+          type: integer
+          format: int64
+        page:
+          type: integer
+          format: int32
+        page_size:
+          type: integer
+          format: int32
+        search:
+          type: string
+        type:
+          type: string
+    Pagination:
+      required:
+        - dir
+        - page
+        - page_size
+      type: object
+      properties:
+        dir:
+          type: string
+          description: Направление сортировки
+          example: DESC
+          enum:
+            - ASC
+            - DESC
+        page:
+          type: integer
+          description: Страница
+          format: int64
+          example: 0
+        page_size:
+          type: integer
+          description: Количество записей на странице
+          format: int64
+          example: 25
+      description: Пагинация
+    PriceDto:
+      type: object
+      properties:
+        currency_code:
+          type: string
+          description: Код валюты
+        old_price:
+          type: number
+          description: Цена товара без скидки
+        price:
+          type: number
+          description: Цена продажиа
+        seller_sku_id:
+          type: string
+          description: Идентификатор sku в системе продавца
+          example: bdd8c471a3b0a3c1
+        sku_id:
+          type: integer
+          description: Идентификатор sku (формирует ММ)
+          format: int64
+          example: 121
+      description: Данные по ценам
+    PriceInfoResponse:
+      type: object
+      properties:
+        commission_amount:
+          type: number
+          description: Размер комиссии за товар
+        commission_currency_code:
+          type: string
+          description: Код валюты комиссии
+        commission_percent:
+          type: integer
+          description: Процент комиссии
+          format: int64
+        currency_code:
+          type: string
+          description: Код валюты
+        old_price:
+          type: number
+          description: Цена товара без скидки
+        price:
+          type: number
+          description: Цена продажиа
+        seller_sku_id:
+          type: string
+          description: Идентификатор sku в системе продавца
+          example: bdd8c471a3b0a3c1
+        sku_id:
+          type: integer
+          description: Идентификатор sku (формирует ММ)
+          format: int64
+          example: 121
+        timestamp:
+          type: string
+          description: Дата последнего обновления
+          format: date-time
+      description: Данные по ценам
+    PricesRequest:
+      type: object
+      properties:
+        prices:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceDto'
+      description: Запрос на обновление данные по ценам
+    ProductDeleteRequest:
+      type: object
+      properties:
+        product_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+    ProductDeleteResponse:
+      type: object
+      properties:
+        error_msg:
+          type: string
+        product_id:
+          type: integer
+          format: int64
+        success:
+          type: boolean
+    ProductVisualEffects:
+      type: object
+      properties:
+        url:
+          type: string
+    SkuArchiveRequest:
+      type: object
+      properties:
+        seller_sku_ids:
+          type: array
+          items:
+            type: string
+        sku_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+    SkuArchiveResponse:
+      type: object
+      properties:
+        error_msg:
+          type: string
+        seller_sku_id:
+          type: string
+          description: Идентификатор sku в системе продавца
+          example: bdd8c471a3b0a3c1
+        sku_id:
+          type: integer
+          description: Идентификатор sku (формирует ММ)
+          format: int64
+          example: 121
+        success:
+          type: boolean
+    SkuCharacteristic:
+      type: object
+      properties:
+        characteristic_id:
+          type: integer
+          format: int32
+        characteristic_value:
+          type: string
+    SkuCharacteristicCategoryDto:
+      required:
+        - characteristic_title
+        - dictionary_id
+        - system_characteristic
+        - type
+      type: object
+      properties:
+        characteristic_title:
+          type: string
+          description: Name of the characteristic
+          example: Color
+        dictionary_id:
+          type: integer
+          description: Unique identifier of the characteristic
+          format: int64
+          example: 101
+        system_characteristic:
+          type: boolean
+          description: >-
+            Flag indicating if the characteristic is system-based (true) or
+            filtering property (false)
+          example: true
+        type:
+          type: string
+          description: Type of the characteristic
+          example: DEFINED
+          enum:
+            - DEFINED
+            - PRODUCT
+            - SKU
+      description: SKU filter characteristics of the category
+    SkuFilter:
+      type: object
+      properties:
+        seller_sku_ids:
+          type: array
+          description: Массив идентификаторов sku в системе продавца
+          items:
+            type: string
+            description: Массив идентификаторов sku в системе продавца
+        sku_ids:
+          type: array
+          description: Массив идентификаторов sku (формирует ММ)
+          items:
+            type: integer
+            description: Массив идентификаторов sku (формирует ММ)
+            format: int64
+      description: Фильтр SKU
+    SkuInfo:
+      required:
+        - barcode
+        - category_id
+        - currency_code
+        - depth
+        - description
+        - height
+        - is_active
+        - is_archive
+        - is_blocked
+        - is_no_stock
+        - okpd2
+        - price
+        - product_id
+        - product_images
+        - seller_sku_id
+        - sku_id
+        - title
+        - vat
+        - weight
+        - width
+      type: object
+      properties:
+        barcode:
+          type: integer
+          description: Штрихкод
+          format: int64
+        category_id:
+          type: integer
+          description: Идентификатор категории
+          format: int64
+        certificate:
+          type: string
+          description: Сертификат
+        composition:
+          type: string
+          description: Состав
+        currency_code:
+          type: string
+          description: Валюта цены
+        custom_characteristic_values_skus:
+          type: array
+          description: Пользовательские характеристики SKU
+          items:
+            $ref: '#/components/schemas/SkuCharacteristic'
+        depth:
+          type: integer
+          description: Глубина в мм
+          format: int64
+        description:
+          type: string
+          description: Описание
+        height:
+          type: integer
+          description: Высота в мм
+          format: int64
+        instruction:
+          type: string
+          description: Инструкция
+        is_active:
+          type: boolean
+          description: Признак активности
+        is_archive:
+          type: boolean
+          description: Признак архивности
+        is_blocked:
+          type: boolean
+          description: Признак блокировки
+        is_no_stock:
+          type: boolean
+          description: Признак отсутствия на складе
+        okpd2:
+          type: string
+          description: Код ОКПД2
+        old_price:
+          type: integer
+          description: Цена товара без скидки
+          format: int32
+        photo_360:
+          $ref: '#/components/schemas/ProductVisualEffects'
+        price:
+          type: integer
+          description: Цена продажи
+          format: int32
+        product_id:
+          type: integer
+          description: Идентификатор карточки товара
+          format: int64
+        product_images:
+          $ref: '#/components/schemas/ProductVisualEffects'
+        seller_sku_id:
+          type: string
+          description: Идентификатор SKU
+        size_chart:
+          type: string
+          description: Таблица размеров
+        sku_characteristic_list:
+          type: array
+          description: Список характеристик SKU
+          items:
+            $ref: '#/components/schemas/SkuCharacteristic'
+        sku_id:
+          type: integer
+          description: Идентификатор SKU
+          format: int64
+        title:
+          type: string
+          description: Название
+        vat:
+          type: integer
+          description: Ставка НДС
+          format: int32
+        video:
+          $ref: '#/components/schemas/ProductVisualEffects'
+        weight:
+          type: integer
+          description: Вес в граммах
+          format: int64
+        width:
+          type: integer
+          description: Ширина в мм
+          format: int64
+      description: Информация о SKU
+    SkuInfoRequest:
+      required:
+        - pagination
+      type: object
+      properties:
+        filter:
+          $ref: '#/components/schemas/SkuFilter'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      description: Запрос на получение данных по SKU
+    SkuInfoResponsePriceInfoResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceInfoResponse'
+      description: Ответ на запрос данных по остаткам
+    SkuInfoResponseProductDeleteResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductDeleteResponse'
+      description: Ответ на запрос данных по остаткам
+    SkuInfoResponseSkuArchiveResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuArchiveResponse'
+      description: Ответ на запрос данных по остаткам
+    SkuInfoResponseStockInfoResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockInfoResponse'
+      description: Ответ на запрос данных по остаткам
+    SkuListRequest:
+      required:
+        - pagination
+      type: object
+      properties:
+        filter:
+          $ref: '#/components/schemas/SkuFilter'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      description: Запрос на получение списка SKU
+    SkuListResponse:
+      required:
+        - result
+      type: object
+      properties:
+        result:
+          type: array
+          description: Список найденных SKU
+          items:
+            $ref: '#/components/schemas/SkuInfo'
+      description: Ответ со списком SKU
+    SkuRequest:
+      type: object
+      properties:
+        barcode:
+          type: integer
+          format: int32
+        category_id:
+          type: integer
+          format: int32
+        certificate:
+          type: string
+        composition:
+          type: string
+        currency_code:
+          type: string
+        custom_characteristic_values_skus:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuCharacteristic'
+        depth:
+          type: integer
+          format: int32
+        description:
+          type: string
+        height:
+          type: integer
+          format: int32
+        instruction:
+          type: string
+        okpd2:
+          type: string
+        old_price:
+          type: integer
+          format: int32
+        photo360:
+          $ref: '#/components/schemas/ProductVisualEffects'
+        price:
+          type: integer
+          format: int32
+        product_images:
+          $ref: '#/components/schemas/ProductVisualEffects'
+        seller_sku_id:
+          type: string
+        shop_id:
+          type: integer
+          format: int32
+        size_chart:
+          type: string
+        sku_characteristic_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuCharacteristic'
+        sku_group_id:
+          type: string
+        title:
+          type: string
+        vat:
+          type: string
+        video:
+          $ref: '#/components/schemas/ProductVisualEffects'
+        weight:
+          type: integer
+          format: int32
+        width:
+          type: integer
+          format: int32
+    StockDto:
+      required:
+        - stock
+        - warehouse_id
+      type: object
+      properties:
+        seller_sku_id:
+          type: string
+          description: Идентификатор sku в системе продавца
+          example: bdd8c471a3b0a3c1
+        sku_id:
+          type: integer
+          description: Идентификатор sku (формирует ММ)
+          format: int64
+          example: 121
+        stock:
+          type: integer
+          description: Остаток на складе селлера
+          format: int64
+          example: 1
+        warehouse_id:
+          type: string
+          description: Идентификатор склада (формирует ММ)
+          format: uuid
+          example: bdd8c471-3dc8-4dd0-a544-30b5a3b0a3c1
+      description: Данные по остаткам на складе продавца
+    StockInfoDetails:
+      type: object
+      properties:
+        reserved:
+          type: integer
+          description: Количество зарезервированных товаров на складе
+          format: int64
+          example: 3
+        stock:
+          type: integer
+          description: Количество товара
+          format: int64
+          example: 120
+        type:
+          type: string
+          description: Тип склада
+          example: FBS
+      description: Детальные данные по остаткам
+    StockInfoResponse:
+      type: object
+      properties:
+        seller_sku_id:
+          type: string
+          description: Идентификатор sku в системе продавца
+          example: 30b5a3b0a3c1
+        sku_id:
+          type: integer
+          description: Идентификатор sku (формирует ММ)
+          format: int64
+          example: 11
+        stock_info_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockInfoDetails'
+      description: Данные по остаткам
+    StockRequest:
+      required:
+        - stocks
+      type: object
+      properties:
+        stocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockDto'
+      description: Запрос на обновление данные по остаткам
+    TaskStatusResponse:
+      type: object
+      properties:
+        error:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorInfo'
+        total_upload:
+          type: integer
+          format: int32
+
+    #magnit-market-seller-api-schema-lms
+    MarketplaceSortDirection:
+      type: string
+      description: Направление сортировки
+      default: DESC
+      enum:
+        - ASC
+        - DESC
+    MarketplaceOrderIdType:
+      type: string
+      description: Номер заказа
+      maxLength: 36
+    MarketplaceFilterDateTime:
+      type: object
+      allOf:
+        - properties:
+            since:
+              type: string
+              format: date-time
+              example: '2019-08-24T14:15:22'
+        - properties:
+            until:
+              type: string
+              format: date-time
+              example: '2019-08-24T14:15:22'
+    MarketplaceOrderStatus:
+      type: string
+      description: |
+        Статус сборочного заказа
+        * `NEW`         - Новый
+        * `IN_ASSEMBLY` - Собирается
+        * `ASSEMBLED`   - Сборка завершена
+        * `CANCELED`    - Отменен
+      enum:
+        - NEW
+        - IN_ASSEMBLY
+        - ASSEMBLED
+        - CANCELED
+    MarketplaceOrdersListRequest:
+      type: object
+      required:
+        - dir
+        - created_at
+      properties:
+        dir:
+          $ref: '#/components/schemas/MarketplaceSortDirection'
+        order_id:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            description: Id заказов
+            allOf:
+              - $ref: '#/components/schemas/MarketplaceOrderIdType'
+        created_at:
+          $ref: '#/components/schemas/MarketplaceFilterDateTime'
+        status:
+          $ref: '#/components/schemas/MarketplaceOrderStatus'
+        page_size:
+          type: integer
+        page_token:
+          type: string
+          description: |
+            next_page_token из предыдущего ответа
+    MarketplaceSkuIdType:
+      type: integer
+      format: int64
+      example: 4323435
+    MarketplaceOrderItemFinancialData:
+      type: object
+      required:
+        - commission_amount
+        - old_price
+        - price
+        - total_discount_amount
+      properties:
+        commission_amount:
+          description: Размер комиссии маркетплейса
+          type: number
+          example: 30
+        old_price:
+          description: Старая цена товара
+          type: number
+          example: 30
+        price:
+          description: Цена товара
+          type: number
+          example: 30
+        total_discount_amount:
+          description: Размер скидки
+          type: number
+          example: 1000
+    MarketplaceOrderItem:
+      type: object
+      required:
+        - sku_id
+        - quantity
+        - canceled_quantity
+      properties:
+        sku_id:
+          $ref: '#/components/schemas/MarketplaceSkuIdType'
+        quantity:
+          type: integer
+          description: >-
+            Кол-во единиц товара которое необходимо собрат в рамках этого
+            заказа.
+
+            Если отменять товары, то значение в этом поле будет уменьшается (в
+            том числе до 0)
+          example: 10
+        canceled_quantity:
+          type: integer
+          description: Кол-во товаров которое было отменено при сборке.
+          example: 1
+        financial_data:
+          $ref: '#/components/schemas/MarketplaceOrderItemFinancialData'
+    MarketplaceOrder:
+      type: object
+      properties:
+        order_id:
+          $ref: '#/components/schemas/MarketplaceOrderIdType'
+        status:
+          $ref: '#/components/schemas/MarketplaceOrderStatus'
+        cutoff_time:
+          description: Время до которого необходимо привезти заказ на точку drop-off
+          type: string
+          format: date-time
+          example: '2019-08-24T14:15:22'
+        items:
+          description: |
+            Список товаров которые необходимо собрать
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceOrderItem'
+    MarketplaceNextPageToken:
+      type: string
+      description: >
+        Токен для получения следующей порции ответа. Отсутствует в ответе, если
+        данных для следующей страницы нет.
+    MarketplaceOrdersListResponse:
+      type: object
+      required:
+        - orders
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceOrder'
+        next_page_token:
+          $ref: '#/components/schemas/MarketplaceNextPageToken'
+    MarketplaceOrdersUnprocessedRequest:
+      type: object
+      required:
+        - dir
+      properties:
+        dir:
+          $ref: '#/components/schemas/MarketplaceSortDirection'
+        cutoff_time:
+          $ref: '#/components/schemas/MarketplaceFilterDateTime'
+        page_size:
+          type: integer
+        page_token:
+          type: string
+          description: |
+            `next_page_token` из предыдущего ответа
+    MarketplaceOrdersUnprocessedResponse:
+      type: object
+      required:
+        - orders
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceOrder'
+        next_page_token:
+          $ref: '#/components/schemas/MarketplaceNextPageToken'
+    MarketplaceSkuItem:
+      type: object
+      required:
+        - sku_id
+        - quantity
+      properties:
+        sku_id:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+          minimum: 1
+    MarketplaceOrderCancelItemsRequest:
+      type: object
+      required:
+        - items
+        - order_id
+      properties:
+        order_id:
+          $ref: '#/components/schemas/MarketplaceOrderIdType'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceSkuItem'
+    MarketplaceOrderCancelItemsResponse:
+      type: object
+      required:
+        - order
+      properties:
+        order:
+          $ref: '#/components/schemas/MarketplaceOrder'
+    MarketplaceOrderCancelRequest:
+      type: object
+      required:
+        - order_id
+      properties:
+        order_id:
+          type: integer
+          example: 1234
+    MarketplaceOrderCancelResponse:
+      type: object
+    MarketplaceOrderCompleteRequest:
+      type: object
+      required:
+        - order_id
+      properties:
+        order_id:
+          type: integer
+          example: 1234
+    MarketplaceParcelIdType:
+      type: string
+      description: Id посылки
+      maxLength: 36
+    MarketplaceParcelStatus:
+      type: string
+      description: |
+        Статус посылки  
+        * `NEW`                  - Новый
+        * `READY_TO_SHIPMENT`    - Готов к отгрузке
+        * `AWAITING_DELIVERY`    - Передается в доставку
+        * `DELIVERING`           - В пути
+        * `RECEIVED`             - Получен (клиентом)
+        * `CANCELED`             - Отменен
+      enum:
+        - NEW
+        - READY_TO_SHIPMENT
+        - AWAITING_DELIVERY
+        - DELIVERING
+        - RECEIVED
+        - CANCELED
+    MarketplaceSkuIdentifiers:
+      type: object
+      properties:
+        cis:
+          type: string
+          example: string
+        uin:
+          type: string
+          example: string
+        rnpt:
+          type: string
+          example: string
+        gtd:
+          type: string
+          example: string
+    MarketplaceParcelItem:
+      type: object
+      required:
+        - sku_id
+        - quantity
+      properties:
+        sku_id:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+          minimum: 1
+        identifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceSkuIdentifiers'
+    MarketplaceParcel:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/MarketplaceParcelIdType'
+        status:
+          $ref: '#/components/schemas/MarketplaceParcelStatus'
+        barcode:
+          type: string
+        cutoff_time:
+          type: string
+          format: date-time
+          example: '2019-08-24T14:15:22'
+        order_id:
+          $ref: '#/components/schemas/MarketplaceOrderIdType'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelItem'
+    MarketplaceOrderCompleteResponse:
+      type: object
+      properties:
+        parcels:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceParcel'
+    MarketplaceOrderParcelsRequest:
+      type: object
+      required:
+        - parcels
+      properties:
+        parcels:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceSkuItem'
+        remove_parcels:
+          type: array
+          description: |
+            Идентификаторы ранее переданных посылок, которые необходимо удалить.
+            Распределение удаляемых посылок можно передать в этом же запросе
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelIdType'
+    MarketplaceOrderParcelsResponse:
+      type: object
+      required:
+        - parcels
+      properties:
+        parcels:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceParcel'
+    MarketplaceParcelLabelItem:
+      type: object
+      required:
+        - sku_id
+        - identifiers
+      properties:
+        sku_id:
+          $ref: '#/components/schemas/MarketplaceParcelIdType'
+        identifiers:
+          $ref: '#/components/schemas/MarketplaceSkuIdentifiers'
+    MarketplaceParcelsAddMarkingRequest:
+      type: object
+      required:
+        - parcels
+      properties:
+        parcel_id:
+          $ref: '#/components/schemas/MarketplaceParcelIdType'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelLabelItem'
+    MarketplaceParcelsAddMarkingResponse:
+      type: object
+    MarketplaceParcelsLabelsRequest:
+      type: object
+      required:
+        - parcels
+      properties:
+        parcel_id:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelIdType'
+    MarketplaceParcelsLabelsResponse:
+      type: object
+      required:
+        - parcels
+      properties:
+        file_content:
+          description: PDF файл со всеми этикетками
+          type: string
+        parcels:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelLabelItem'
+    MarketplaceParcelsCancelRequest:
+      type: object
+      properties:
+        parcel_id:
+          $ref: '#/components/schemas/MarketplaceParcelIdType'
+    MarketplaceParcelsCancelResponse:
+      type: object
+      properties: {}
+    MarketplaceParcelsListRequest:
+      type: object
+      required:
+        - dir
+      properties:
+        dir:
+          $ref: '#/components/schemas/MarketplaceSortDirection'
+        parcel_id:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            description: Id посылок
+            allOf:
+              - $ref: '#/components/schemas/MarketplaceParcelIdType'
+        order_id:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            description: Id заказов
+            allOf:
+              - $ref: '#/components/schemas/MarketplaceOrderIdType'
+        created_at:
+          $ref: '#/components/schemas/MarketplaceFilterDateTime'
+        status:
+          allOf:
+            - $ref: '#/components/schemas/MarketplaceParcelStatus'
+        page_size:
+          type: integer
+        page_token:
+          type: string
+          description: |
+            next_page_token из предыдущего ответа
+    MarketplaceParcelsListResponse:
+      type: object
+      properties:
+        next_page_token:
+          description: |
+            Токен для получения следующей страницы
+          type: string
+        parcels:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceParcel'
+    MarketplaceShipmentIdType:
+      type: integer
+      format: int64
+    MarketplaceShipmentListRequest:
+      type: object
+      required:
+        - dir
+      properties:
+        dir:
+          $ref: '#/components/schemas/MarketplaceSortDirection'
+        shipment_id:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            description: Id
+            allOf:
+              - $ref: '#/components/schemas/MarketplaceShipmentIdType'
+        created_at:
+          $ref: '#/components/schemas/MarketplaceFilterDateTime'
+        confirmed_at:
+          $ref: '#/components/schemas/MarketplaceFilterDateTime'
+        page_size:
+          type: integer
+        page_token:
+          type: string
+          description: |
+            next_page_token из предыдущего ответа
+    MarketplaceShipmentListResponse:
+      type: object
+      required:
+        - dir
+      properties:
+        dir:
+          $ref: '#/components/schemas/MarketplaceSortDirection'
+        parcel_id:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            description: Id посылок
+            allOf:
+              - $ref: '#/components/schemas/MarketplaceParcelIdType'
+        order_id:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            description: Id заказов
+            allOf:
+              - $ref: '#/components/schemas/MarketplaceOrderIdType'
+        created_at:
+          $ref: '#/components/schemas/MarketplaceFilterDateTime'
+        status:
+          allOf:
+            - $ref: '#/components/schemas/MarketplaceParcelStatus'
+        limit:
+          type: integer
+        page_token:
+          type: string
+          description: |
+            next_page_token из предыдущего ответа
+    MarketplaceShipmentAddParcelsRequest:
+      type: object
+      required:
+        - parcels
+      properties:
+        parcel_id:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelIdType'
+    MarketplaceShipmentAddParcelsResponse:
+      type: object
+      properties:
+        shipment_id:
+          type: integer
+          format: int64
+        parcels:
+          type: array
+          items:
+            properties:
+              parcel_id:
+                $ref: '#/components/schemas/MarketplaceParcelIdType'
+              barcode:
+                $ref: '#/components/schemas/MarketplaceParcelIdType'
+    MarketplaceShipmentsConfirmRequest:
+      type: object
+    MarketplaceShipmentsConfirmResponse:
+      type: object
+      properties:
+        shipment_id:
+          type: integer
+          format: int64
+        parcels:
+          type: array
+          items:
+            properties:
+              parcel_id:
+                $ref: '#/components/schemas/MarketplaceParcelIdType'
+              barcode:
+                $ref: '#/components/schemas/MarketplaceParcelIdType'
+    MarketplaceShipmentGetDocumentsRequest:
+      type: object
+      required:
+        - parcels
+      properties:
+        shipment_id:
+          type: integer
+        document_type:
+          type: string
+          enum:
+            - act_of_acceptance
+    MarketplaceShipmentGetDocumentsResponse:
+      type: object
+      required:
+        - parcels
+      properties:
+        file_content:
+          description: Содержимое документа в формате PDF
+          type: string
+    #magnit-market-seller-api-schema-end
   requestBodies:
     OrderNotificationRequest:
       required: true
@@ -3001,7 +5098,7 @@ components:
               - type
             properties:
               type:
-                $ref: '#/components/schemas/OrderNotificationTypeEnum'
+                $ref: "#/components/schemas/OrderNotificationTypeEnum"
           examples:
             Готов забрать:
               description: "Событие о том, что курьер готов забрать заказ для доставки, или клиент готов забрать заказ для самовывоза."
@@ -3026,7 +5123,7 @@ components:
               - reason
             properties:
               reason:
-                $ref: '#/components/schemas/OrderCancellationReasonEnum'
+                $ref: "#/components/schemas/OrderCancellationReasonEnum"
               cancelled_at:
                 type: string
                 description: "Дата отмены заказа в RFC3339 с указанием часового пояса"
@@ -3038,7 +5135,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/OrderChangeStatusRequest'
+            $ref: "#/components/schemas/OrderChangeStatusRequest"
 
     PostV2OauthTokenRequest:
       required: true
@@ -3077,28 +5174,28 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Order'
+            $ref: "#/components/schemas/Order"
 
     OrderCreateResponse:
       description: Успешное создание заказа
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/OrderCreateResponse'
+            $ref: "#/components/schemas/OrderCreateResponse"
 
     IssueOrderCreateResponse:
       description: Раздел выдачи при создании заказа
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/IssueOrderCreateResponse'
+            $ref: "#/components/schemas/IssueOrderCreateResponse"
 
     OrderStatusResponse:
       description: Актуальный статус заказа
       content:
         application/json:
           schema:
-              $ref: '#/components/schemas/OrderStatusResponse'
+            $ref: "#/components/schemas/OrderStatusResponse"
           examples:
             Заказ создан:
               description: "Заказ создан в системе Магнит."
@@ -3149,28 +5246,28 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
 
     BadRequestGoodStocksErrorResponse:
       description: Что-то не так в содержании запроса. Ориентируйтесь на описание ошибки, чтобы понять, что именно не так.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/BadRequestStoresStockDelta'
+            $ref: "#/components/schemas/BadRequestStoresStockDelta"
 
     NotFoundErrorResponse:
       description: Запрашиваемый ресурс не найден. Проверьте адреса запросов, по которым обращается система партнера.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
 
     UnauthorizedErrorResponse:
       description: В запросе не указан или указан несуществующий, истекший токен авторизации.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
 
     ForbiddenErrorResponseWithoutBody:
       description: Доступ к запрашиваемой информации запрещен.
@@ -3189,28 +5286,65 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/OauthToken'
+            $ref: "#/components/schemas/OauthToken"
 
     PostV2OauthBadResponse:
       description: Ошибка в параметрах, в ответе список ошибок валидации
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/OauthError'
+            $ref: "#/components/schemas/OauthError"
 
     StoresPricesResponse:
       description: Успешное получение цен по товарам в ТО Магнита
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/StoresPricesItemsV1'
+            $ref: "#/components/schemas/StoresPricesItemsV1"
 
     StoresStocksResponse:
       description: Успешное получение остатков по товарам в ТО Магнита
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/StoresStocksItemsV1'
-
-
-
+            $ref: "#/components/schemas/StoresStocksItemsV1"
+    #magnit-market-seller-api-responses-begin
+    #magnit-market-seller-api-responses-goods
+    #magnit-market-seller-api-responses-lms
+    Marketplace400:
+      description: Запрос содержит неправильные данные
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    Marketplace401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    Marketplace404:
+      description: Запрашиваемый ресурс не найдет
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    Marketplace500:
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    #magnit-market-seller-api-responses-end

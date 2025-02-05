@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.1.11 - 25-02-05
+* Добавлены методы API Magnit Market FBS
+
 ## v0.1.10 - 24-07-12
 * Добавлены методы API Magnit Post
 
