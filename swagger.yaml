@@ -2,11 +2,11 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.12
+  version: 0.1.13
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
-  - url: https://b2b-api-gateway-uat.ecom.md.magnit.ru/api
+  - url: https://b2b-api-gateway.uat.ya.magnit.ru/api
     description: Демо стенд для проведения тестирования процессинга заказов.
 tags:
   - name: Auth
@@ -892,7 +892,7 @@ paths:
         - Magnit Post
   #magnit-market-seller-api-begin
   #magnit-market-seller-api-goods
-  /api/seller/v1/categories:
+  /seller/v1/categories:
     get:
       description: REST эндпоинт для получения списка активных категорий
       operationId: getActiveCategories
@@ -916,7 +916,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/defined-characteristics:
+  /seller/v1/products/defined-characteristics:
     post:
       description: REST эндпоинт для получения списка характеристик
       operationId: getDefinedCharacteristics
@@ -946,7 +946,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/dictionary:
+  /seller/v1/products/dictionary:
     get:
       description: REST эндопинт для получения списка словарей
       operationId: getDictionaryValues
@@ -974,7 +974,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/sku:
+  /seller/v1/products/sku:
     post:
       description: REST эндпоинт для создания/обновления списка СКУ
       operationId: createSku
@@ -1002,7 +1002,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/sku/list:
+  /seller/v1/products/sku/list:
     post:
       description: REST эндпоинт для получения списка СКУ
       operationId: getSkuList
@@ -1030,7 +1030,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/sku/price:
+  /seller/v1/products/sku/price:
     post:
       description: REST эндпоинт для обновления цен
       operationId: update
@@ -1054,7 +1054,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/sku/price/info:
+  /seller/v1/products/sku/price/info:
     post:
       description: REST эндпоинт для получения данных по ценам
       operationId: getPriceInfo
@@ -1082,7 +1082,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/sku/shops/{shop_id}/sku/archive:
+  /seller/v1/products/sku/shops/{shop_id}/sku/archive:
     post:
       description: REST эндпоинт для архивации списка СКУ
       operationId: archiveSkuList
@@ -1117,7 +1117,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/sku/shops/{shop_id}/sku/delete:
+  /seller/v1/products/sku/shops/{shop_id}/sku/delete:
     post:
       description: REST эндпоинт для удаления списка СКУ
       operationId: deleteProduct
@@ -1151,7 +1151,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/sku/shops/{shop_id}/sku/unarchive:
+  /seller/v1/products/sku/shops/{shop_id}/sku/unarchive:
     post:
       description: REST эндпоинт для разархивации списка СКУ
       operationId: recoverSkuList
@@ -1185,7 +1185,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/sku/stocks:
+  /seller/v1/products/sku/stocks:
     post:
       description: REST эндпоинт для обновления остатков
       operationId: updateStocks
@@ -1209,7 +1209,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/sku/stocks/info:
+  /seller/v1/products/sku/stocks/info:
     post:
       description: REST эндпоинт для получения информации об остатках
       operationId: getStocksInfo
@@ -1237,7 +1237,7 @@ paths:
         - Magnit Market Seller API
       security:
         - apiKeyAuth: []
-  /api/seller/v1/products/sku/tasks/{task_id}/status:
+  /seller/v1/products/sku/tasks/{task_id}/status:
     get:
       description: REST эндпоинт для получения статуса задачи создания/обновления СКУ
       operationId: getTaskStatus
@@ -1266,7 +1266,7 @@ paths:
       security:
         - apiKeyAuth: []
   #magnit-market-seller-api-lms
-  /api/seller/v1/orders/list/unprocessed:
+  /seller/v1/orders/list/unprocessed:
     post:
       operationId: ordersUnprocessedMarket
       tags:
@@ -1298,7 +1298,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/orders/list:
+  /seller/v1/orders/list:
     post:
       operationId: ordersListMarket
       tags:
@@ -1329,7 +1329,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/orders/cancel-items:
+  /seller/v1/orders/cancel-items:
     post:
       operationId: ordersCancelItemsMarket
       tags:
@@ -1362,7 +1362,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/orders/cancel:
+  /seller/v1/orders/cancel:
     post:
       operationId: ordersCancelMarket
       tags:
@@ -1395,7 +1395,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/orders/complete:
+  /seller/v1/orders/complete:
     post:
       operationId: ordersCompleteMarket
       tags:
@@ -1427,7 +1427,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/orders/parcels:
+  /seller/v1/orders/parcels:
     post:
       operationId: ordersParcelsMarket
       tags:
@@ -1470,7 +1470,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/parcels/list:
+  /seller/v1/parcels/list:
     post:
       operationId: parcelsListMarket
       tags:
@@ -1500,7 +1500,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/parcels/set-marking:
+  /seller/v1/parcels/set-marking:
     post:
       operationId: parcelsMarkingMarket
       tags:
@@ -1537,7 +1537,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/parcels/get-labels:
+  /seller/v1/parcels/get-labels:
     post:
       operationId: parcelsGetLabelsMarket
       tags:
@@ -1567,7 +1567,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/parcels/cancel:
+  /seller/v1/parcels/cancel:
     post:
       operationId: parcelsCancelMarket
       tags:
@@ -1600,7 +1600,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/parcels/unpack:
+  /seller/v1/parcels/unpack:
     post:
       operationId: parcelsUnpackMarket
       tags:
@@ -1634,7 +1634,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/shipments/list:
+  /seller/v1/shipments/list:
     post:
       operationId: shipmentsListMarket
       tags:
@@ -1664,7 +1664,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/shipments/add-parcels:
+  /seller/v1/shipments/add-parcels:
     post:
       operationId: shipmentsAddParcelsMarket
       tags:
@@ -1695,7 +1695,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/shipments/confirm:
+  /seller/v1/shipments/confirm:
     post:
       operationId: shipmentsConfirmMarket
       tags:
@@ -1726,7 +1726,7 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
-  /api/seller/v1/shipments/get-documents:
+  /seller/v1/shipments/get-documents:
     post:
       operationId: shipmentsGetDocumentsMarket
       tags:
