@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.13
+  version: 0.1.14
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -952,10 +952,36 @@ paths:
       operationId: getDictionaryValues
       parameters:
         - in: query
-          name: request
+          name: dictionary_id
           required: true
           schema:
-            $ref: '#/components/schemas/GetDictionaryRequest'
+            type: integer
+            format: int64
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: search
+          required: false
+          schema:
+            type: string
+            default: ''
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - in: query
+          name: page_size
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 10
       responses:
         '200':
           content:
@@ -1271,9 +1297,9 @@ paths:
       operationId: ordersUnprocessedMarket
       tags:
         - Magnit Market Seller API
-      summary: Список необработанных заказов на сборку
+      summary: Список необработанных заданий на сборку
       description: >
-        Возвращает список необработанных заказов на сборку за указанный период
+        Возвращает список необработанных заданий на сборку за указанный период
         времени.
       requestBody:
         content:
@@ -1283,7 +1309,7 @@ paths:
         required: true
       responses:
         '200':
-          description: Список заказов на сборку
+          description: Список заданий на сборку
           content:
             application/json:
               schema:
@@ -1303,9 +1329,9 @@ paths:
       operationId: ordersListMarket
       tags:
         - Magnit Market Seller API
-      summary: Список заказов на сборку
+      summary: Список заданий на сборку
       description: |
-        Возвращает список заказов на сборку за указанный период времени.
+        Возвращает список заданий на сборку за указанный период времени.
       requestBody:
         content:
           application/json:
@@ -1314,7 +1340,7 @@ paths:
         required: true
       responses:
         '200':
-          description: Список заказов на сборку
+          description: Список заданий на сборку
           content:
             application/json:
               schema:
@@ -1334,11 +1360,11 @@ paths:
       operationId: ordersCancelItemsMarket
       tags:
         - Magnit Market Seller API
-      summary: Отмена части товаров из заказа
+      summary: Отмена части товаров
       description: |
         Отменяемый товар не должен быть распределен по посылкам. 
 
-        ⚠️ Это действие нельзя отменить
+        ⚠️ Это действие нельзя отменить.
       requestBody:
         content:
           application/json:
@@ -1347,7 +1373,7 @@ paths:
         required: true
       responses:
         '200':
-          description: Данные по заказу на сборку
+          description: Актуальные информация о задании на сборку
           content:
             application/json:
               schema:
@@ -1367,11 +1393,11 @@ paths:
       operationId: ordersCancelMarket
       tags:
         - Magnit Market Seller API
-      summary: Отмена заказа на сборку
+      summary: Отмена задания на сборку
       description: |
-        ⚠️ Заказ может быть отменен, до его перевода в статус `ASSEMBLED`.
+        ⚠️ Задание может быть отменено, до перевода в статус `ASSEMBLED`.
 
-        ⚠️ Это действие нельзя отменить
+        ⚠️ Это действие нельзя отменить.
       requestBody:
         content:
           application/json:
@@ -1380,7 +1406,7 @@ paths:
         required: true
       responses:
         '200':
-          description: Список заказов на сборку
+          description: Список заданий на сборку
           content:
             application/json:
               schema:
@@ -1400,7 +1426,7 @@ paths:
       operationId: ordersCompleteMarket
       tags:
         - Magnit Market Seller API
-      summary: Подтверждение сборки заказа
+      summary: Подтверждение сборки
       description: >
         Необходимо вызвать этот метод, чтобы посылки можно было добавить в
         отгрузку
@@ -1412,7 +1438,7 @@ paths:
         required: true
       responses:
         '200':
-          description: Список посылок по заказу
+          description: Список посылок
           content:
             application/json:
               schema:
@@ -1433,20 +1459,9 @@ paths:
       tags:
         - Magnit Market Seller API
       summary: Передать разбиение на посылки
-      description: >
-        Позволяет передать разбиение заказа на посылки.
-
-
-        Метод можно использовать до перевода заказа в статус `ASSEMBLED` или
-        `CANCELED`   
-
-
-        ⚠️ Необходимо передавать все собранные, на данный момент, посылки в
-        каждом запросе.
-
-
-        ⚠️ Метод не производит удаление посылок. Для этого воспользуйтесь
-        соответствующим методом.
+      description: |
+        Позволяет передать разбиение всего задания на посылки.
+        Метод можно использовать если задания на сборку находится в статус `NEW`
       requestBody:
         content:
           application/json:
@@ -1485,7 +1500,7 @@ paths:
               $ref: '#/components/schemas/MarketplaceParcelsListRequest'
       responses:
         '200':
-          description: Список заказов продавца
+          description: Список посылок
           content:
             application/json:
               schema:
@@ -1505,16 +1520,16 @@ paths:
       operationId: parcelsMarkingMarket
       tags:
         - Magnit Market Seller API
-      summary: Передать маркировку товаров внутри посылок
+      summary: Передать маркировку товаров внутри посылки
       description: >
-        Передать маркировку можно до подтверждения сборки заказа
+        Передать маркировку можно до подтверждения сборки задания.
 
 
         ⚠️ Маркетплейс не производит проверку и вывод марок из оборота.
 
 
         ⚠️ Необходимо передавать маркировку сразу на все единицы товара (т.е.
-        равным quantity товаров)
+        равным quantity этого товара в посылке).
       requestBody:
         content:
           application/json:
@@ -1574,10 +1589,10 @@ paths:
         - Magnit Market Seller API
       summary: Отменить посылку вместе с товарами
       description: >
-        Метод позволяет отменить собранную посылку, при этом также отменяться
-        товары находящиеся в ней.
+        Метод позволяет отменить собранную посылку. При этом также отменяются
+        товары, находящиеся в ней.
 
-         ⚠️ Это действие нельзя отменить
+         ⚠️ Это действие нельзя отменить.
       requestBody:
         content:
           application/json:
@@ -1590,6 +1605,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketplaceParcelsCancelResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '403':
+          $ref: '#/components/responses/Marketplace403'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /seller/v1/parcels/create:
+    post:
+      operationId: parcelsCreateMarket
+      tags:
+        - Magnit Market Seller API
+      summary: Создание посылки
+      description: |
+        Метод позволяет передать состав одной посылки.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceParcelsCreateRequest'
+      responses:
+        '200':
+          description: Посылка успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceParcelsCreateResponse'
         '400':
           $ref: '#/components/responses/Marketplace400'
         '403':
@@ -1695,6 +1740,37 @@ paths:
           $ref: '#/components/responses/Marketplace500'
       security:
         - apiKeyAuth: []
+  /seller/v1/shipments/remove-parcels:
+    post:
+      operationId: shipmentsRemoveParcelsMarket
+      tags:
+        - Magnit Market Seller API
+      summary: Удалить посылки из отгрузки
+      description: |
+        Удаляет посылки из формируемой отгрузки.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceShipmentRemoveParcelsRequest'
+        required: true
+      responses:
+        '200':
+          description: Актуальный состав отгрузки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceShipmentRemoveParcelsResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '403':
+          $ref: '#/components/responses/Marketplace403'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
   /seller/v1/shipments/confirm:
     post:
       operationId: shipmentsConfirmMarket
@@ -1716,6 +1792,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketplaceShipmentsConfirmResponse'
+        '400':
+          $ref: '#/components/responses/Marketplace400'
+        '403':
+          $ref: '#/components/responses/Marketplace403'
+        '404':
+          $ref: '#/components/responses/Marketplace404'
+        '500':
+          $ref: '#/components/responses/Marketplace500'
+      security:
+        - apiKeyAuth: []
+  /seller/v1/shipments/cancel:
+    post:
+      operationId: shipmentsCancelMarket
+      tags:
+        - Magnit Market Seller API
+      summary: Отменить отгрузку
+      description: >
+        Отменяет отгрузку. Отменить отгрузку можно только на статусе
+        `CONFIRMED`  
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarketplaceShipmentsCancelRequest'
+        required: true
+      responses:
+        '200':
+          description: Состав отгрузки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketplaceShipmentsCancelResponse'
         '400':
           $ref: '#/components/responses/Marketplace400'
         '403':
@@ -4035,22 +4143,6 @@ components:
           format: date-time
         trace:
           type: string
-    GetDictionaryRequest:
-      type: object
-      properties:
-        dictionary_id:
-          type: integer
-          format: int64
-        page:
-          type: integer
-          format: int32
-        page_size:
-          type: integer
-          format: int32
-        search:
-          type: string
-        type:
-          type: string
     Pagination:
       required:
         - dir
@@ -4066,11 +4158,14 @@ components:
             - ASC
             - DESC
         page:
+          minimum: 0
           type: integer
           description: Страница
           format: int64
           example: 0
         page_size:
+          maximum: 1000
+          minimum: 1
           type: integer
           description: Количество записей на странице
           format: int64
@@ -4584,7 +4679,6 @@ components:
         total_upload:
           type: integer
           format: int32
-
     #magnit-market-seller-api-schema-lms
     MarketplacePaginationRequest:
       type: object
@@ -4655,12 +4749,13 @@ components:
             Его необходимо передать в поле `page_token` в следующем запросе.
     MarketplaceOrderIdType:
       type: string
-      description: Идентификатор заказа
+      description: Идентификатор сборочного задания
       maxLength: 36
     MarketplaceOrderStatus:
       type: string
       description: |
-        Статус сборочного заказа
+        Статус сборочного задания
+
         * `NEW`         - Новый
         * `IN_ASSEMBLY` - Собирается
         * `ASSEMBLED`   - Сборка завершена
@@ -4700,8 +4795,7 @@ components:
         quantity:
           type: integer
           description: >-
-            Кол-во единиц товара которое необходимо собрать в рамках этого
-            заказа.
+            Кол-во единиц товара которое необходимо собрать.
 
             Поле отражает актуальное кол-во товара которое необходимо собрать.
             Если производить отмену товаров, то значение в этом поле будет
@@ -4726,7 +4820,9 @@ components:
         status:
           $ref: '#/components/schemas/MarketplaceOrderStatus'
         cutoff_time:
-          description: Время до которого необходимо привезти заказ на точку drop-off
+          description: >
+            Дата и время, до которого необходимо собрать товары в посылки и
+            привезти их на точку drop-off
           allOf:
             - $ref: '#/components/schemas/MarketplaceDateTime'
         items:
@@ -4845,23 +4941,6 @@ components:
       type: string
       description: Идентификатор посылки
       maxLength: 36
-    MarketplaceParcelStatus:
-      type: string
-      description: |
-        Статус посылки  
-        * `NEW`                  - Новая
-        * `READY_TO_SHIPMENT`    - Готов к отгрузке
-        * `AWAITING_DELIVERY`    - Передается в доставку
-        * `DELIVERING`           - В пути
-        * `RECEIVED`             - Получен клиентом
-        * `CANCELED`             - Отменен
-      enum:
-        - NEW
-        - READY_TO_SHIPMENT
-        - AWAITING_DELIVERY
-        - DELIVERING
-        - RECEIVED
-        - CANCELED
     MarketplaceSkuIdentifiers:
       type: object
       properties:
@@ -4884,8 +4963,7 @@ components:
         - quantity
       properties:
         sku_id:
-          type: integer
-          format: int64
+          $ref: '#/components/schemas/MarketplaceSkuIdType'
         quantity:
           type: integer
           minimum: 1
@@ -4897,23 +4975,13 @@ components:
       type: object
       required:
         - parcel_id
-        - status
         - barcode
-        - cutoff_time
         - items
       properties:
         parcel_id:
           $ref: '#/components/schemas/MarketplaceParcelIdType'
-        order_id:
-          $ref: '#/components/schemas/MarketplaceOrderIdType'
-        status:
-          $ref: '#/components/schemas/MarketplaceParcelStatus'
         barcode:
           type: string
-        cutoff_time:
-          type: string
-          format: date-time
-          example: '2019-08-24T14:15:22'
         items:
           type: array
           items:
@@ -4927,15 +4995,27 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MarketplaceParcel'
+    MarketplaceCreateParcel:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelItem'
     MarketplaceOrderParcelsRequest:
       type: object
       required:
         - parcels
+        - order_id
       properties:
+        order_id:
+          $ref: '#/components/schemas/MarketplaceOrderIdType'
         parcels:
           type: array
           items:
-            $ref: '#/components/schemas/MarketplaceSkuItem'
+            $ref: '#/components/schemas/MarketplaceCreateParcel'
     MarketplaceOrderParcelsResponse:
       type: object
       required:
@@ -4945,6 +5025,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MarketplaceParcel'
+    MarketplaceParcelStatus:
+      type: string
+      description: |
+        Статус посылки  
+        * `NEW`                  - Новая
+        * `READY_TO_SHIPMENT`    - Готов к отгрузке
+        * `AWAITING_DELIVERY`    - Передается в доставку
+        * `DELIVERING`           - В пути
+        * `RECEIVED`             - Получен клиентом
+        * `CANCELED`             - Отменен
+      enum:
+        - NEW
+        - READY_TO_SHIPMENT
+        - AWAITING_DELIVERY
+        - DELIVERING
+        - RECEIVED
+        - CANCELED
     MarketplaceParcelsListRequest:
       type: object
       required:
@@ -4973,6 +5070,31 @@ components:
               $ref: '#/components/schemas/MarketplaceFilterDateTime'
             status:
               $ref: '#/components/schemas/MarketplaceParcelStatus'
+    MarketplaceParcelFullInfo:
+      type: object
+      required:
+        - parcel_id
+        - status
+        - barcode
+        - cutoff_time
+        - items
+      properties:
+        parcel_id:
+          $ref: '#/components/schemas/MarketplaceParcelIdType'
+        order_id:
+          $ref: '#/components/schemas/MarketplaceOrderIdType'
+        status:
+          $ref: '#/components/schemas/MarketplaceParcelStatus'
+        barcode:
+          type: string
+        cutoff_time:
+          type: string
+          format: date-time
+          example: '2019-08-24T14:15:22'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelItem'
     MarketplaceParcelsListResponse:
       type: object
       allOf:
@@ -4982,24 +5104,37 @@ components:
             parcels:
               type: array
               items:
-                $ref: '#/components/schemas/MarketplaceParcel'
+                $ref: '#/components/schemas/MarketplaceParcelFullInfo'
+    MarketplaceParcelMarkingItem:
+      type: object
+      required:
+        - sku_id
+        - identifiers
+      properties:
+        sku_id:
+          $ref: '#/components/schemas/MarketplaceSkuIdType'
+        identifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceSkuIdentifiers'
     MarketplaceParcelsAddMarkingRequest:
       type: object
       required:
-        - parcels
+        - parcel_id
+        - items
       properties:
         parcel_id:
           $ref: '#/components/schemas/MarketplaceParcelIdType'
         items:
           type: array
           items:
-            $ref: '#/components/schemas/MarketplaceParcelItem'
+            $ref: '#/components/schemas/MarketplaceParcelMarkingItem'
     MarketplaceParcelsAddMarkingResponse:
       type: object
     MarketplaceParcelsLabelsRequest:
       type: object
       required:
-        - parcels
+        - parcel_id
       properties:
         parcel_id:
           type: array
@@ -5010,8 +5145,8 @@ components:
     MarketplaceParcelLabelItem:
       type: object
       required:
-        - sku_id
-        - identifiers
+        - parcel_id
+        - barcode
       properties:
         parcel_id:
           $ref: '#/components/schemas/MarketplaceParcelIdType'
@@ -5022,6 +5157,7 @@ components:
       type: object
       required:
         - parcels
+        - file_content
       properties:
         file_content:
           description: PDF файл со всеми этикетками
@@ -5034,14 +5170,39 @@ components:
             $ref: '#/components/schemas/MarketplaceParcelLabelItem'
     MarketplaceParcelsCancelRequest:
       type: object
+      required:
+        - parcel_id
       properties:
         parcel_id:
           $ref: '#/components/schemas/MarketplaceParcelIdType'
     MarketplaceParcelsCancelResponse:
       type: object
       properties: {}
+    MarketplaceParcelsCreateRequest:
+      type: object
+      required:
+        - order_id
+        - items
+      properties:
+        order_id:
+          $ref: '#/components/schemas/MarketplaceOrderIdType'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelItem'
+    MarketplaceParcelsCreateResponse:
+      type: object
+      properties:
+        parcel_id:
+          $ref: '#/components/schemas/MarketplaceParcelIdType'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelItem'
     MarketplaceParcelsUnpackRequest:
       type: object
+      required:
+        - parcel_id
       properties:
         parcel_id:
           $ref: '#/components/schemas/MarketplaceParcelIdType'
@@ -5125,20 +5286,43 @@ components:
     MarketplaceShipmentAddParcelsRequest:
       type: object
       required:
-        - parcels
+        - parcel_id
       properties:
-        parcels:
+        parcel_id:
           type: array
           minItems: 1
-          maxItems: 1000
+          maxItems: 100
           items:
             $ref: '#/components/schemas/MarketplaceParcelIdType'
     MarketplaceShipmentAddParcelsResponse:
       type: object
       properties:
         shipment_id:
-          type: integer
-          format: int64
+          $ref: '#/components/schemas/MarketplaceShipmentIdType'
+        parcels:
+          type: array
+          items:
+            properties:
+              parcel_id:
+                $ref: '#/components/schemas/MarketplaceParcelIdType'
+              barcode:
+                type: string
+    MarketplaceShipmentRemoveParcelsRequest:
+      type: object
+      required:
+        - parcel_id
+      properties:
+        parcel_id:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/MarketplaceParcelIdType'
+    MarketplaceShipmentRemoveParcelsResponse:
+      type: object
+      properties:
+        shipment_id:
+          $ref: '#/components/schemas/MarketplaceShipmentIdType'
         parcels:
           type: array
           items:
@@ -5149,6 +5333,15 @@ components:
                 type: string
     MarketplaceShipmentsConfirmRequest:
       type: object
+      required:
+        - delivery_date
+      properties:
+        delivery_date:
+          type: string
+          description: |
+            Плановая дата, когда отгрузка будет доставлена на точку drop-off
+          example: '2025-01-01'
+          format: date
     MarketplaceShipmentParcel:
       type: object
       required:
@@ -5168,21 +5361,49 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MarketplaceShipmentParcel'
-    MarketplaceShipmentGetDocumentsRequest:
+    MarketplaceShipmentsCancelRequest:
       type: object
       required:
+        - shipment_id
+      properties:
+        shipment_id:
+          $ref: '#/components/schemas/MarketplaceShipmentIdType'
+    MarketplaceShipmentsCancelResponse:
+      type: object
+      required:
+        - shipment_id
         - parcels
       properties:
         shipment_id:
-          type: integer
+          $ref: '#/components/schemas/MarketplaceShipmentIdType'
+        parcels:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketplaceShipmentParcel'
+    MarketplaceShipmentGetDocumentsRequest:
+      type: object
+      required:
+        - shipment_id
+        - document_type
+      properties:
+        shipment_id:
+          $ref: '#/components/schemas/MarketplaceShipmentIdType'
         document_type:
           type: string
+          description: |
+            Тип запрашиваемого документа:
+                         
+            * `act_of_acceptance` — акт приема-передачи
+            * `act_of_mismatch` — акт о расхождениях
+            * `delivery_note` — лист отгрузки
           enum:
             - act_of_acceptance
+            - act_of_mismatch
+            - delivery_note
     MarketplaceShipmentGetDocumentsResponse:
       type: object
       required:
-        - parcels
+        - file_content
       properties:
         file_content:
           description: Содержимое документа в формате PDF
