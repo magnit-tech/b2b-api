@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.14 - 25-02-12
+* Изменено описание метода /api/seller/v1/products/dictionary в API Magnit Market FBS
+* Имена некоторых параметров переименованы согласно общему код-стайлу из camelCase в snake_case в API Magnit Market FBS
+* Добавлены новые методы в API Magnit Market FBS
+* Расширено описание методов API Magnit Market FBS
+
 ## v0.1.13 - 25-02-11
 * Изменен адрес демо-стенда для проведения тестирования
 * Исправлены методы API Magnit Market FBS
