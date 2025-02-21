@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.15 - 21-02-25
+* Обновлена сущность Sku в API Magnit Market FBS
+* Изменена пагинация для запроса словарей в API Magnit Market FBS
+
 ## v0.1.14 - 25-02-12
 * Изменено описание метода /api/seller/v1/products/dictionary в API Magnit Market FBS
 * Имена некоторых параметров переименованы согласно общему код-стайлу из camelCase в snake_case в API Magnit Market FBS
