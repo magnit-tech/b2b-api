@@ -1,6 +1,10 @@
 # Changelog
 
-## v0.1.15 - 21-02-25
+## v0.1.16 - 25-02-25
+- В /api/seller/v1/products/sku/shops/{shop_id}/sku/unarchive параметры запроса перенесены из Query String в Request Body
+- В /api/seller/v1/products/sku/shops/{shop_id}/sku/delete параметры запроса перенесены из Query String в Request Body
+
+## v0.1.15 - 25-02-21
 * Обновлена сущность Sku в API Magnit Market FBS
 * Изменена пагинация для запроса словарей в API Magnit Market FBS
 
