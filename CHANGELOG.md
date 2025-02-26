@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.17 - 25-02-26
+- POST /api/seller/v1/products/sku/price: добавлено описание response
+- POST /api/seller/v1/products/sku/list: исправлено описание request
+
 ## v0.1.16 - 25-02-25
 - В /api/seller/v1/products/sku/shops/{shop_id}/sku/unarchive параметры запроса перенесены из Query String в Request Body
 - В /api/seller/v1/products/sku/shops/{shop_id}/sku/delete параметры запроса перенесены из Query String в Request Body
