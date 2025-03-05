@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.1.18 - 25-03-05
+- Создание/обновление списка СКУ (POST /seller/v1/products/sku): в request для поля barcode поднята разрядность типа до int64
+
 ## v0.1.17 - 25-02-26
 - POST /api/seller/v1/products/sku/price: добавлено описание response
 - POST /api/seller/v1/products/sku/list: исправлено описание request
