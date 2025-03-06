@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.1.20 - 25-03-06
+- Исправлено дублирование `/api/` в адресах Magnit Market API.
+
 ## v0.1.19 - 25-03-06
 - Добавлен эндпоинт получения списка активных магазинов (GET /seller/v1/shops).
 - В эндпоинте POST /seller/v1/products/sku/list в response у поля vat сменился тип на string.
