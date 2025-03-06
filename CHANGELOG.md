@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.19 - 25-03-06
+- Добавлен эндпоинт получения списка активных магазинов (GET /seller/v1/shops).
+- В эндпоинте POST /seller/v1/products/sku/list в response у поля vat сменился тип на string.
+- В эндпоинте удаления SKU (POST /seller/v1/products/sku/shops/{shop_id}/sku/delete)  изменились требования в request параметрам.
+- В эндпоинте создания/обновления списка SKU (POST /seller/v1/products/sku) в request из обязательных убрано поле okpd2 и добавлено short_description.
+- В эндпоинтах работы с заказами и посылками небольшие правки.
+
 ## v0.1.18 - 25-03-05
 - Создание/обновление списка СКУ (POST /seller/v1/products/sku): в request для поля barcode поднята разрядность типа до int64
 

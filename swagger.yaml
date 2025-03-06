@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.18
+  version: 0.1.19
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -23,8 +23,21 @@ tags:
     description: Услуга доставки от системы Магнит
   - name: Magnit Post
     description: Услуга доставки до ПВЗ
-  - name: Magnit Market Seller API
-    description: Партнерская интеграция с Magnit Market по модели FBS
+  - name: Magnit Market API - Товары
+    description: Партнерская интеграция с Magnit Market по модели FBS. Товары
+  - name: Magnit Market API - Категории
+    description: Партнерская интеграция с Magnit Market по модели FBS. Категории
+  - name: Magnit Market API - Цены
+    description: Партнерская интеграция с Magnit Market по модели FBS. Цены
+  - name: Magnit Market API - Остатки
+    description: Партнерская интеграция с Magnit Market по модели FBS. Товары
+  - name: Magnit Market API - Магазины
+    description: Партнерская интеграция с Magnit Market по модели FBS. Магазины
+  - name: Magnit Market API - Задания на сборку
+    description: Партнерская интеграция с Magnit Market по модели FBS. Задания на сборку
+  - name: Magnit Market API - Отгрузка посылок
+    description: Партнерская интеграция с Magnit Market по модели FBS. Отгрузка посылок
+
 
 paths:
   /v1/oauth/token:
@@ -892,7 +905,7 @@ paths:
         - Magnit Post
   #magnit-market-seller-api-begin
   #magnit-market-seller-api-goods
-  /seller/v1/categories:
+  /api/seller/v1/categories:
     get:
       description: REST эндпоинт для получения списка активных категорий
       operationId: getActiveCategories
@@ -913,10 +926,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Получение списка категорий
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Категории
       security:
         - apiKeyAuth: []
-  /seller/v1/products/defined-characteristics:
+  /api/seller/v1/products/defined-characteristics:
     post:
       description: REST эндпоинт для получения списка характеристик
       operationId: getDefinedCharacteristics
@@ -943,10 +956,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Получение списка характеристик
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Категории
       security:
         - apiKeyAuth: []
-  /seller/v1/products/dictionary:
+  /api/seller/v1/products/dictionary:
     get:
       description: REST эндопинт для получения списка словарей
       operationId: getDictionaryValues
@@ -997,10 +1010,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Получение списка словарей
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Категории
       security:
         - apiKeyAuth: []
-  /seller/v1/products/sku:
+  /api/seller/v1/products/sku:
     post:
       description: REST эндпоинт для создания/обновления списка СКУ
       operationId: createSku
@@ -1025,10 +1038,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Создание/обновление СКУ
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Товары
       security:
         - apiKeyAuth: []
-  /seller/v1/products/sku/list:
+  /api/seller/v1/products/sku/list:
     post:
       description: REST эндпоинт для получения списка СКУ
       operationId: getSkuList
@@ -1053,10 +1066,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Получение списка СКУ
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Товары
       security:
         - apiKeyAuth: []
-  /seller/v1/products/sku/price:
+  /api/seller/v1/products/sku/price:
     post:
       description: REST эндпоинт для обновления цен
       operationId: update
@@ -1081,10 +1094,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Обновление цен
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Цены
       security:
         - apiKeyAuth: []
-  /seller/v1/products/sku/price/info:
+  /api/seller/v1/products/sku/price/info:
     post:
       description: REST эндпоинт для получения данных по ценам
       operationId: getPriceInfo
@@ -1109,10 +1122,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Получение данных по ценам
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Цены
       security:
         - apiKeyAuth: []
-  /seller/v1/products/sku/shops/{shop_id}/sku/archive:
+  /api/seller/v1/products/sku/shops/{shop_id}/sku/archive:
     post:
       description: REST эндпоинт для архивации списка СКУ
       operationId: archiveSkuList
@@ -1144,10 +1157,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Архивация SKU
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Товары
       security:
         - apiKeyAuth: []
-  /seller/v1/products/sku/shops/{shop_id}/sku/delete:
+  /api/seller/v1/products/sku/shops/{shop_id}/sku/delete:
     post:
       description: REST эндпоинт для удаления списка СКУ
       operationId: deleteProduct
@@ -1179,10 +1192,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Удаление СКУ
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Товары
       security:
         - apiKeyAuth: []
-  /seller/v1/products/sku/shops/{shop_id}/sku/unarchive:
+  /api/seller/v1/products/sku/shops/{shop_id}/sku/unarchive:
     post:
       description: REST эндпоинт для разархивации списка СКУ
       operationId: recoverSkuList
@@ -1214,10 +1227,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Разархивация СКУ
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Товары
       security:
         - apiKeyAuth: []
-  /seller/v1/products/sku/stocks:
+  /api/seller/v1/products/sku/stocks:
     post:
       description: REST эндпоинт для обновления остатков
       operationId: updateStocks
@@ -1238,10 +1251,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Обновление остатков
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Остатки
       security:
         - apiKeyAuth: []
-  /seller/v1/products/sku/stocks/info:
+  /api/seller/v1/products/sku/stocks/info:
     post:
       description: REST эндпоинт для получения информации об остатках
       operationId: getStocksInfo
@@ -1266,10 +1279,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Получение информации об остатках
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Остатки
       security:
         - apiKeyAuth: []
-  /seller/v1/products/sku/tasks/{task_id}/status:
+  /api/seller/v1/products/sku/tasks/{task_id}/status:
     get:
       description: REST эндпоинт для получения статуса задачи создания/обновления СКУ
       operationId: getTaskStatus
@@ -1294,7 +1307,31 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       summary: Получение статуса задачи создания/обновления СКУ
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Товары
+      security:
+        - apiKeyAuth: []
+  /api/seller/v1/shops:
+    get:
+      description: REST эндпоинт для получения списка активных магазинов
+      operationId: getShops
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShopDto'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      summary: Получение списка магазинов
+      tags:
+        - Magnit Market API - Магазины
       security:
         - apiKeyAuth: []
   #magnit-market-seller-api-lms
@@ -1302,7 +1339,7 @@ paths:
     post:
       operationId: ordersUnprocessedMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Список необработанных заданий на сборку
       description: >
         Возвращает список необработанных заданий на сборку за указанный период
@@ -1334,7 +1371,7 @@ paths:
     post:
       operationId: ordersListMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Список заданий на сборку
       description: |
         Возвращает список заданий на сборку за указанный период времени.
@@ -1365,7 +1402,7 @@ paths:
     post:
       operationId: ordersCancelItemsMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Отмена части товаров
       description: |
         Отменяемый товар не должен быть распределен по посылкам. 
@@ -1398,7 +1435,7 @@ paths:
     post:
       operationId: ordersCancelMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Отмена задания на сборку
       description: |
         ⚠️ Задание может быть отменено, до перевода в статус `ASSEMBLED`.
@@ -1412,7 +1449,7 @@ paths:
         required: true
       responses:
         '200':
-          description: Список заданий на сборку
+          description: Запрос успешно выполнен
           content:
             application/json:
               schema:
@@ -1431,7 +1468,7 @@ paths:
     post:
       operationId: ordersCompleteMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Подтверждение сборки
       description: >
         Необходимо вызвать этот метод, чтобы посылки можно было добавить в
@@ -1463,7 +1500,7 @@ paths:
     post:
       operationId: ordersParcelsMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Передать разбиение на посылки
       description: |
         Позволяет передать разбиение всего задания на посылки.
@@ -1495,7 +1532,7 @@ paths:
     post:
       operationId: parcelsListMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Список посылок
       description: |
         Возвращает список посылок за указанный период времени.
@@ -1525,7 +1562,7 @@ paths:
     post:
       operationId: parcelsMarkingMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Передать маркировку товаров внутри посылки
       description: >
         Передать маркировку можно до подтверждения сборки задания.
@@ -1562,10 +1599,12 @@ paths:
     post:
       operationId: parcelsGetLabelsMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Получить этикетки для посылок
       description: |
         Метод возвращает этикетки для посылок в виде одного файла
+      parameters:
+        - $ref: '#/components/parameters/MarketplaceDocumentAccept'
       requestBody:
         content:
           application/json:
@@ -1578,6 +1617,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketplaceParcelsLabelsResponse'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+                example: |-
+                  %PDF-1.3
+                  3 0 obj
+                  ...
         '400':
           $ref: '#/components/responses/Marketplace400'
         '403':
@@ -1592,7 +1639,7 @@ paths:
     post:
       operationId: parcelsCancelMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Отменить посылку вместе с товарами
       description: >
         Метод позволяет отменить собранную посылку. При этом также отменяются
@@ -1625,7 +1672,7 @@ paths:
     post:
       operationId: parcelsCreateMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Создание посылки
       description: |
         Метод позволяет передать состав одной посылки.
@@ -1655,7 +1702,7 @@ paths:
     post:
       operationId: parcelsUnpackMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Задания на сборку
       summary: Удаляет посылку
       description: >
         Метод позволяет удалить посылку. Для этого посылка должна находиться в
@@ -1689,7 +1736,7 @@ paths:
     post:
       operationId: shipmentsListMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Отгрузка посылок
       summary: Список отгрузок
       description: |
         Возвращает список отгрузок за указанный период времени.
@@ -1719,7 +1766,7 @@ paths:
     post:
       operationId: shipmentsAddParcelsMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Отгрузка посылок
       summary: Добавить посылки к отгрузке
       description: |
         Добавляет посылки к формируемой отгрузке.
@@ -1750,7 +1797,7 @@ paths:
     post:
       operationId: shipmentsRemoveParcelsMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Отгрузка посылок
       summary: Удалить посылки из отгрузки
       description: |
         Удаляет посылки из формируемой отгрузки.
@@ -1781,7 +1828,7 @@ paths:
     post:
       operationId: shipmentsConfirmMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Отгрузка посылок
       summary: Подтвердить отгрузку
       description: |
         Завершить формирование отгрузки. 
@@ -1812,7 +1859,7 @@ paths:
     post:
       operationId: shipmentsCancelMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Отгрузка посылок
       summary: Отменить отгрузку
       description: >
         Отменяет отгрузку. Отменить отгрузку можно только на статусе
@@ -1844,10 +1891,12 @@ paths:
     post:
       operationId: shipmentsGetDocumentsMarket
       tags:
-        - Magnit Market Seller API
+        - Magnit Market API - Отгрузка посылок
       summary: Получить документы по отгрузке
       description: |
         Возвращает выбранный документ для отгрузки
+      parameters:
+        - $ref: '#/components/parameters/MarketplaceDocumentAccept'
       requestBody:
         content:
           application/json:
@@ -1860,6 +1909,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MarketplaceShipmentGetDocumentsResponse'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+                example: |-
+                  %PDF-1.3
+                  3 0 obj
+                  ...
         '400':
           $ref: '#/components/responses/Marketplace400'
         '403':
@@ -1911,6 +1968,18 @@ components:
         minimum: 1
         maximum: 1000
         default: 100
+    MarketplaceDocumentAccept:
+      name: Accept
+      in: header
+      description: |
+        Выбранный формат получения ответа (по умолчанию `application/json`)
+      required: false
+      schema:
+        type: string
+        default: application/json
+        enum:
+          - application/json
+          - application/pdf
 
   schemas:
     StoresPricesItemsV1:
@@ -3986,20 +4055,20 @@ components:
         category_ids:
           type: array
           description: >-
-            List of category IDs to fetch characteristics for. These IDs will be
-            processed to retrieve the corresponding characteristics only for
-            active categories. Only IDs of categories marked as active will be
-            considered.
+            Список ID категорий, для которых необходимо получить характеристики. 
+            Эти ID будут обработаны для получения соответствующих характеристик 
+            только для активных категорий. Будут учитываться только идентификаторы 
+            категорий, помеченных как активные.
           example:
             - 123123
             - 123124
           items:
             type: integer
             description: >-
-              List of category IDs to fetch characteristics for. These IDs will
-              be processed to retrieve the corresponding characteristics only
-              for active categories. Only IDs of categories marked as active
-              will be considered.
+              Список идентификаторов категорий, для которых необходимо получить характеристики. 
+              Эти идентификаторы будут обработаны для получения соответствующих характеристик 
+              только для активных категорий. Будут учитываться только идентификаторы категорий, 
+              помеченных как активные.
             format: int64
     CharacteristicAttribute:
       required:
@@ -4127,8 +4196,8 @@ components:
         category_string_path:
           type: string
           description: >-
-            Full path of the category, showing hierarchy from parent to current
-            category, separated by '->'
+            Полный путь к категории, показывающий иерархию от родительской 
+            до текущей категории, разделенный символом "->"
           example: Electronics -> Computers -> Laptops
         category_title:
           type: string
@@ -4316,13 +4385,18 @@ components:
             $ref: '#/components/schemas/PriceDto'
       description: Запрос на обновление данные по ценам
     ProductDeleteRequest:
+      required:
+        - product_ids
       type: object
       properties:
         product_ids:
           type: array
+          description: Список идентификаторов продукта
           items:
             type: integer
+            description: Список идентификаторов продукта
             format: int64
+      description: Запрос на удаление продуктов
     ProductDeleteResponse:
       type: object
       properties:
@@ -4342,17 +4416,33 @@ components:
           type: string
           description: Конечный URL
       description: Объект с URL архива.zip с фотографиями внутри в формате .jpg
+    ShopDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Идентификатор магазина
+          format: int64
+          example: 123
+        title:
+          type: string
+          description: Название магазина
+          example: Березка
     SkuArchiveRequest:
       type: object
       properties:
         seller_sku_ids:
           type: array
+          description: Список идентификаторов sku в системе продавца
           items:
             type: string
+            description: Список идентификаторов sku в системе продавца
         sku_ids:
           type: array
+          description: Список идентификаторов sku
           items:
             type: integer
+            description: Список идентификаторов sku
             format: int64
     SkuArchiveResponse:
       type: object
@@ -4404,8 +4494,8 @@ components:
         system_characteristic:
           type: boolean
           description: >-
-            Flag indicating if the characteristic is system-based (true) or
-            filtering property (false)
+            Флаг, указывающий, является ли характеристика системной (true)
+            или фильтрующим свойством (false).
           example: true
         type:
           type: string
@@ -4419,14 +4509,19 @@ components:
     SkuFilter:
       type: object
       properties:
-        shop_id:
-          type: integer
-          format: int32
-          description: Идентификатор магазина
-        category_id:
-          type: integer
-          format: int32
-          description: Идентификатор категории
+        seller_sku_ids:
+          type: array
+          description: Массив идентификаторов sku в системе продавца
+          items:
+            type: string
+            description: Массив идентификаторов sku в системе продавца
+        sku_ids:
+          type: array
+          description: Массив идентификаторов sku (формирует ММ)
+          items:
+            type: integer
+            description: Массив идентификаторов sku (формирует ММ)
+            format: int64
       description: Фильтр SKU
     SkuInfo:
       required:
@@ -4541,9 +4636,8 @@ components:
           type: string
           description: Название
         vat:
-          type: integer
+          type: string
           description: Ставка НДС
-          format: int32
         video:
           $ref: '#/components/schemas/ProductVisualEffects'
         weight:
@@ -4633,11 +4727,11 @@ components:
         - depth
         - description
         - height
-        - okpd2
         - price
         - product_images
         - seller_sku_id
         - shop_id
+        - short_description
         - title
         - vat
         - weight
@@ -4711,6 +4805,9 @@ components:
           type: integer
           description: Идентификатор магазина
           format: int64
+        short_description:
+          type: string
+          description: Краткое описание, единое для карточки товара
         size_chart:
           type: string
           description: Конечный URL файла с размерной сеткой в jpg, png, pdf
@@ -4807,6 +4904,7 @@ components:
       properties:
         stocks:
           type: array
+          description: Список объектов с данными об остатках
           items:
             $ref: '#/components/schemas/StockDto'
       description: Запрос на обновление данные по остаткам
@@ -4985,18 +5083,21 @@ components:
                 $ref: '#/components/schemas/MarketplaceOrder'
     MarketplaceApiError:
       type: object
+      required:
+        - message
       properties:
         message:
-          description: Описание ошибки
+          description: Описание ошибки.
           type: string
     MarketplaceApiErrorResponse:
       type: object
+      required:
+        - errors
       allOf:
         - properties:
             errors:
               description: Список ошибок.
               type: array
-              nullable: true
               items:
                 $ref: '#/components/schemas/MarketplaceApiError'
     MarketplaceOrdersListRequest:
@@ -5084,19 +5185,20 @@ components:
       maxLength: 36
     MarketplaceSkuIdentifiers:
       type: object
+      description: Идентификаторы для товара
       properties:
         cis:
+          description: Маркировка Честный знак
           type: string
-          example: string
         uin:
+          description: Уникальный идентификационный номер (УИН) ювелирного изделия
           type: string
-          example: string
         rnpt:
+          description: Регистрационный номер партии товара (РНПТ)
           type: string
-          example: string
         gtd:
+          description: Номер грузовой таможенной декларации (ГТД)
           type: string
-          example: string
     MarketplaceParcelItem:
       type: object
       required:
@@ -5303,6 +5405,11 @@ components:
         file_content:
           description: PDF файл со всеми этикетками
           type: string
+          example: |-
+            %PDF-1.3
+            3 0 obj
+            <</Type /Page
+            ...
         parcels:
           description: |
             Информация о посылках
@@ -5549,6 +5656,8 @@ components:
         file_content:
           description: Содержимое документа в формате PDF
           type: string
+          example: |
+            %PDF-1.3\n3 0 obj\n<</Type /Page\n...
     #magnit-market-seller-api-schema-end
   requestBodies:
     OrderNotificationRequest:
