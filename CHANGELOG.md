@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.22 - 25-03-14
+- Обновлен SkuFilter;
+- Изменены error responses.
+- 
 ## v0.1.21 - 25-03-11
 - API Magnit Market Получение статуса заявок загрузки SKU (GET /api/seller/v1/products/sku/tasks/{task_id}/status) - в response (TaskStatusResponse) добавлено поле status.
 - Если не удалось найти Продавца в некоторых случаях теперь возвращается 401 Unauthorized (было 404).

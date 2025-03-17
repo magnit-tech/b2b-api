@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.21
+  version: 0.1.22
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -1034,8 +1034,14 @@ paths:
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/SkuErrorResponse'
+          description: Пример ответов для ошибок клиента (4xx)
+        '500':
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/GenericResponse'
-          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+          description: Пример ответов для ошибок сервера (5xx)
       summary: Создание/обновление СКУ
       tags:
         - Magnit Market API - Товары
@@ -4254,6 +4260,53 @@ components:
           format: date-time
         trace:
           type: string
+    SkuErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Общее сообщение об ошибке
+          example: "Ошибка валидации SKU"
+        total_upload:
+          type: integer
+          format: int32
+          description: Общее количество загруженных SKU
+          example: 0
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuValidationError'
+      description: Ответ с ошибками валидации SKU
+    SkuValidationError:
+      type: object
+      properties:
+        seller_sku_id:
+          type: string
+          description: Идентификатор SKU в системе продавца
+        status:
+          type: string
+          description: Статус обработки SKU
+        message:
+          type: string
+          description: Сообщение об ошибке для данного SKU
+        attribute_errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+      description: Информация об ошибках валидации конкретного SKU
+    FieldError:
+      type: object
+      properties:
+        attribute:
+          type: string
+          description: Название атрибута, в котором произошла ошибка
+        attribute_id:
+          type: string
+          description: Идентификатор атрибута
+        error:
+          type: string
+          description: Текст ошибки валидации
+      description: Детальная информация об ошибке валидации поля
     Pagination:
       required:
         - dir
@@ -4509,19 +4562,14 @@ components:
     SkuFilter:
       type: object
       properties:
-        seller_sku_ids:
-          type: array
-          description: Массив идентификаторов sku в системе продавца
-          items:
-            type: string
-            description: Массив идентификаторов sku в системе продавца
-        sku_ids:
-          type: array
-          description: Массив идентификаторов sku (формирует ММ)
-          items:
-            type: integer
-            description: Массив идентификаторов sku (формирует ММ)
-            format: int64
+        shop_id:
+          type: integer
+          format: int32
+          description: Идентификатор магазина
+        category_id:
+          type: integer
+          format: int32
+          description: Идентификатор категории
       description: Фильтр SKU
     SkuInfo:
       required:
@@ -4783,7 +4831,7 @@ components:
           description: Общероссийский классификатор продукции
         old_price:
           type: integer
-          description: Цена товара без скидки (зачеркнутая)
+          description: Цена товара без скидки (зачеркнутая). Не может быть меньше или равна текущей цене (price)
           format: int32
         photo360:
           $ref: '#/components/schemas/ProductVisualEffects'
@@ -4794,8 +4842,7 @@ components:
         product_images:
           type: array
           description: >-
-            Массив объектов с URL файлов в jpg, png, pdf с фото товаров; может
-            быть несколько фото (до 10 штук) разделенных через ";"
+            Массив объектов с URL файлов в jpg, png, pdf с фото товаров
           items:
             $ref: '#/components/schemas/ProductVisualEffects'
         seller_sku_id:
@@ -4824,7 +4871,7 @@ components:
           description: Название, единое для карточки товара
         vat:
           type: string
-          description: НДС
+          description: 'НДС. Возможные значения: 0, 5, 7, 10, 20, "Не облагается"'
         video:
           $ref: '#/components/schemas/ProductVisualEffects'
         weight:
