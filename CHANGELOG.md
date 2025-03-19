@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.1.23 - 25-03-18
+- Исправлен фильтр для ручки получения данных по остаткам (/api/seller/v1/products/sku/stocks/info).
+
 ## v0.1.22 - 25-03-14
 - Обновлен SkuFilter;
 - Изменены error responses.

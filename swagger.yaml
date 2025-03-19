@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.22
+  version: 0.1.23
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -4571,6 +4571,23 @@ components:
           format: int32
           description: Идентификатор категории
       description: Фильтр SKU
+    SkuFilterWithIds:
+      type: object
+      properties:
+        seller_sku_ids:
+          type: array
+          description: Массив идентификаторов sku в системе продавца
+          items:
+            type: string
+            description: Массив идентификаторов sku в системе продавца
+        sku_ids:
+          type: array
+          description: Массив идентификаторов sku (формирует ММ)
+          items:
+            type: integer
+            description: Массив идентификаторов sku (формирует ММ)
+            format: int64
+      description: Фильтр с указанием id
     SkuInfo:
       required:
         - barcode
@@ -4703,7 +4720,7 @@ components:
       type: object
       properties:
         filter:
-          $ref: '#/components/schemas/SkuFilter'
+          $ref: '#/components/schemas/SkuFilterWithIds'
         pagination:
           $ref: '#/components/schemas/Pagination'
       description: Запрос на получение данных по SKU
