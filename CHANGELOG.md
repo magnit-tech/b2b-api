@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.24 - 25-04-17
+- Добавился новый метод POST /api/seller/v1/products/sku/shops/{shop_id}/short/list для получения списка компактной информации по SKU
+- Добавились новые поля в SkuRequest (POST /api/seller/v1/products/sku):
+  defined_characteristic_list
+  product_filters_list
+
 ## v0.1.23 - 25-03-18
 - Исправлен фильтр для ручки получения данных по остаткам (/api/seller/v1/products/sku/stocks/info).
 

@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.23
+  version: 0.1.24
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -1015,7 +1015,7 @@ paths:
         - apiKeyAuth: []
   /seller/v1/products/sku:
     post:
-      description: REST эндпоинт для создания/обновления списка СКУ
+      description: REST эндпоинт для создания списка СКУ
       operationId: createSku
       requestBody:
         content:
@@ -1075,6 +1075,41 @@ paths:
         - Magnit Market API - Товары
       security:
         - apiKeyAuth: []
+  /seller/v1/products/sku/shops/{shop_id}/short/list:
+    post:
+      description: REST эндпоинт для получения списка СКУ с основной информацией по СКУ
+      operationId: getShortSkuInfoList
+      parameters:
+        - in: path
+          name: shop_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShortSkuInfoRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ShortSkuInfoResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+        - apiKeyAuth: [ ]
+      summary: Получение списка СКУ с основной информацией
+      tags:
+        - Magnit Market API - Товары
   /seller/v1/products/sku/price:
     post:
       description: REST эндпоинт для обновления цен
@@ -4335,6 +4370,34 @@ components:
           format: int64
           example: 25
       description: Пагинация
+    KeySetPagination:
+      required:
+        - dir
+        - last_key
+        - limit
+      type: object
+      properties:
+        dir:
+          type: string
+          description: Направление сортировки
+          example: DESC
+          enum:
+            - ASC
+            - DESC
+        last_key:
+          minimum: 0
+          type: integer
+          description: Идентификатор записи, с которого начинать чтение
+          format: int64
+          example: 0
+        limit:
+          maximum: 1000
+          minimum: 1
+          type: integer
+          description: Максимальное количество возвращаемых данных
+          format: int64
+          example: 25
+      description: KeySet пагинация
     PriceDto:
       required:
         - currency_code
@@ -4533,6 +4596,7 @@ components:
         - dictionary_id
         - system_characteristic
         - type
+        - required
       type: object
       properties:
         characteristic_title:
@@ -4558,6 +4622,12 @@ components:
             - DEFINED
             - PRODUCT
             - SKU
+        required:
+          type: boolean
+          description: >-
+            Флаг, указывающий, является ли характеристика обязательной (true)
+            или опциональной (false).
+          example: true
       description: SKU filter characteristics of the category
     SkuFilter:
       type: object
@@ -4785,6 +4855,71 @@ components:
           items:
             $ref: '#/components/schemas/SkuInfo'
       description: Ответ со списком SKU
+    ShortSkuInfoRequest:
+      type: object
+      properties:
+        filters:
+          $ref: '#/components/schemas/ShortSkuInfoFilter'
+        pagination:
+          $ref: '#/components/schemas/KeySetPagination'
+      description: Запрос для получения компактной информации об СКУ
+    ShortSkuInfoResponse:
+      type: object
+      properties:
+        result:
+          type: array
+          description: Массив найденных СКУ
+          items:
+            $ref: '#/components/schemas/ShortSkuInfo'
+        result_count:
+          type: integer
+          description: Количество найденных СКУ
+          format: int32
+        shop_id:
+          type: integer
+          description: Идентификатор магазина
+          format: int64
+      description: Ответ, содержащий компактную информацию по найденным СКУ
+    ShortSkuInfoFilter:
+      type: object
+      properties:
+        seller_sku_ids:
+          maxItems: 1000
+          minItems: 0
+          type: array
+          description: Массив внешних (селлерских) идентификаторов СКУ
+          items:
+            type: string
+            description: Массив внешних (селлерских) идентификаторов СКУ
+        sku_ids:
+          maxItems: 1000
+          minItems: 0
+          type: array
+          description: Массив внутренних идентификаторов СКУ
+          items:
+            type: integer
+            description: Массив внутренних идентификаторов СКУ
+            format: int64
+      description: Фильтры для поиска по sku ID или external sku ID
+    ShortSkuInfo:
+      type: object
+      properties:
+        barcode:
+          type: integer
+          description: Баркод SKU
+          format: int64
+        product_id:
+          type: integer
+          description: Идентификатор продукта
+          format: int64
+        seller_sku_id:
+          type: string
+          description: Внешний идентификатор SKU
+        sku_id:
+          type: integer
+          description: Внутренний идентификатор SKU
+          format: int64
+      description: Данные по sku после маппинга
     SkuRequest:
       required:
         - category_id
@@ -4801,6 +4936,7 @@ components:
         - vat
         - weight
         - width
+        - sku_group_id
       type: object
       properties:
         barcode:
@@ -4878,6 +5014,16 @@ components:
         sku_characteristic_list:
           type: array
           description: Характеристики SKU
+          items:
+            $ref: '#/components/schemas/SkuCharacteristic'
+        defined_characteristic_list:
+          type: array
+          description: Предопределенные характеристики SKU
+          items:
+            $ref: '#/components/schemas/SkuCharacteristic'
+        product_filters_list:
+          type: array
+          description: Продуктовые фильтры
           items:
             $ref: '#/components/schemas/SkuCharacteristic'
         sku_group_id:
