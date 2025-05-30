@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.24
+  version: 0.1.25
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -910,25 +910,25 @@ paths:
       description: REST эндпоинт для получения списка активных категорий
       operationId: getActiveCategories
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ExternalSellerCategoryDto'
+                  $ref: "#/components/schemas/ExternalSellerCategoryDto"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
       summary: Получение списка категорий
       tags:
-        - Magnit Market API - Категории
-      security:
-        - apiKeyAuth: []
+      - Magnit Market API - Категории
   /seller/v1/products/defined-characteristics:
     post:
       description: REST эндпоинт для получения списка характеристик
@@ -937,82 +937,82 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CategoryCharacteristicsRequest'
+              $ref: "#/components/schemas/CategoryCharacteristicsRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ExternalSellerCharacteristicsDto'
+                  $ref: "#/components/schemas/ExternalSellerCharacteristicsDto"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
       summary: Получение списка характеристик
       tags:
-        - Magnit Market API - Категории
-      security:
-        - apiKeyAuth: []
+      - Magnit Market API - Товары
   /seller/v1/products/dictionary:
     get:
       description: REST эндопинт для получения списка словарей
       operationId: getDictionaryValues
       parameters:
-        - in: query
-          name: dictionary_id
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - in: query
-          name: type
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: search
-          required: false
-          schema:
-            type: string
-            default: ''
-        - in: query
-          name: page
-          required: false
-          schema:
-            type: integer
-            format: int32
-            default: 0
-        - in: query
-          name: page_size
-          required: false
-          schema:
-            type: integer
-            format: int32
-            default: 10
+      - in: query
+        name: dictionary_id
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: type
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: search
+        required: false
+        schema:
+          type: string
+          default: ""
+      - in: query
+        name: page
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - in: query
+        name: page_size
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/DictionaryResponse'
+                $ref: "#/components/schemas/DictionaryResponse"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
       summary: Получение списка словарей
       tags:
-        - Magnit Market API - Категории
-      security:
-        - apiKeyAuth: []
+      - Magnit Market API - Товары
   /seller/v1/products/sku:
     post:
       description: REST эндпоинт для создания списка СКУ
@@ -1021,32 +1021,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateSkuRequest'
+              $ref: "#/components/schemas/CreateSkuRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/CreateSkuResponse'
+                $ref: "#/components/schemas/CreateSkuResponse"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SkuErrorResponse'
-          description: Пример ответов для ошибок клиента (4xx)
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericResponse'
-          description: Пример ответов для ошибок сервера (5xx)
-      summary: Создание/обновление СКУ
-      tags:
-        - Magnit Market API - Товары
+                $ref: "#/components/schemas/GenericResponse"
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+      summary: Создание СКУ
+      tags:
+      - Magnit Market API - Товары
   /seller/v1/products/sku/list:
     post:
       description: REST эндпоинт для получения списка СКУ
@@ -1055,61 +1049,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SkuListRequest'
+              $ref: "#/components/schemas/SkuListRequest"
         required: true
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SkuListResponse'
-          description: OK
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericResponse'
-          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
-      summary: Получение списка СКУ
-      tags:
-        - Magnit Market API - Товары
-      security:
-        - apiKeyAuth: []
-  /seller/v1/products/sku/shops/{shop_id}/short/list:
-    post:
-      description: REST эндпоинт для получения списка СКУ с основной информацией по СКУ
-      operationId: getShortSkuInfoList
-      parameters:
-        - in: path
-          name: shop_id
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ShortSkuInfoRequest'
-        required: true
-      responses:
-        '200':
+        "200":
           content:
             '*/*':
               schema:
-                $ref: '#/components/schemas/ShortSkuInfoResponse'
+                $ref: "#/components/schemas/SkuListResponse"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
-        - apiKeyAuth: [ ]
-      summary: Получение списка СКУ с основной информацией
+      - apiKeyAuth: []
+      summary: Получение списка СКУ
       tags:
-        - Magnit Market API - Товары
+      - Magnit Market API - Товары
   /seller/v1/products/sku/price:
     post:
       description: REST эндпоинт для обновления цен
@@ -1118,26 +1077,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PricesRequest'
+              $ref: "#/components/schemas/PricesRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/SkuInfoResponsePriceUpdateResponse'
+                $ref: "#/components/schemas/SkuInfoResponsePriceUpdateResponse"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
       summary: Обновление цен
       tags:
-        - Magnit Market API - Цены
-      security:
-        - apiKeyAuth: []
+      - Magnit Market API - Цены
   /seller/v1/products/sku/price/info:
     post:
       description: REST эндпоинт для получения данных по ценам
@@ -1146,131 +1105,171 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SkuInfoRequest'
+              $ref: "#/components/schemas/SkuInfoRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/SkuInfoResponsePriceInfoResponse'
+                $ref: "#/components/schemas/SkuInfoResponsePriceInfoResponse"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
       summary: Получение данных по ценам
       tags:
-        - Magnit Market API - Цены
+      - Magnit Market API - Цены
+  /seller/v1/products/sku/shops/{shop_id}/short/list:
+    post:
+      description: REST эндпоинт для получения списка СКУ с основной информацией по
+        СКУ
+      operationId: getShortSkuInfoList
+      parameters:
+      - description: Идентификатор магазина
+        in: path
+        name: shop_id
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShortSkuInfoRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ShortSkuInfoResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+      summary: Получение списка СКУ с основной информацией
+      tags:
+      - Magnit Market API - Товары
   /seller/v1/products/sku/shops/{shop_id}/sku/archive:
     post:
       description: REST эндпоинт для архивации списка СКУ
       operationId: archiveSkuList
       parameters:
-        - in: path
-          name: shop_id
-          required: true
-          schema:
-            type: integer
-            format: int64
+      - description: Идентификатор магазина
+        in: path
+        name: shop_id
+        required: true
+        schema:
+          type: integer
+          format: int64
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SkuArchiveRequest'
+              $ref: "#/components/schemas/SkuArchiveRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/SkuInfoResponseSkuArchiveResponse'
+                $ref: "#/components/schemas/SkuInfoResponseSkuArchiveResponse"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
       summary: Архивация SKU
       tags:
-        - Magnit Market API - Товары
-      security:
-        - apiKeyAuth: []
+      - Magnit Market API - Товары
   /seller/v1/products/sku/shops/{shop_id}/sku/delete:
     post:
-      description: REST эндпоинт для удаления списка СКУ
+      description: REST эндпоинт для удаления продукта
       operationId: deleteProduct
       parameters:
-        - in: path
-          name: shop_id
-          required: true
-          schema:
-            type: integer
-            format: int64
+      - description: Идентификатор магазина
+        in: path
+        name: shop_id
+        required: true
+        schema:
+          type: integer
+          format: int64
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProductDeleteRequest'
+              $ref: "#/components/schemas/ProductDeleteRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/SkuInfoResponseProductDeleteResponse'
+                $ref: "#/components/schemas/SkuInfoResponseProductDeleteResponse"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
-      summary: Удаление СКУ
-      tags:
-        - Magnit Market API - Товары
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+      summary: Удаление продукта
+      tags:
+      - Magnit Market API - Товары
   /seller/v1/products/sku/shops/{shop_id}/sku/unarchive:
     post:
       description: REST эндпоинт для разархивации списка СКУ
       operationId: recoverSkuList
       parameters:
-        - in: path
-          name: shop_id
-          required: true
-          schema:
-            type: integer
-            format: int64
+      - description: Идентификатор магазина
+        in: path
+        name: shop_id
+        required: true
+        schema:
+          type: integer
+          format: int64
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SkuArchiveRequest'
+              $ref: "#/components/schemas/SkuArchiveRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/SkuInfoResponseSkuArchiveResponse'
+                $ref: "#/components/schemas/SkuInfoResponseSkuArchiveResponse"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
       summary: Разархивация СКУ
       tags:
-        - Magnit Market API - Товары
-      security:
-        - apiKeyAuth: []
+      - Magnit Market API - Товары
   /seller/v1/products/sku/stocks:
     post:
       description: REST эндпоинт для обновления остатков
@@ -1279,22 +1278,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StockRequest'
+              $ref: "#/components/schemas/StockRequest"
         required: true
       responses:
-        '200':
+        "200":
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
       summary: Обновление остатков
       tags:
-        - Magnit Market API - Остатки
-      security:
-        - apiKeyAuth: []
+      - Magnit Market API - Остатки
   /seller/v1/products/sku/stocks/info:
     post:
       description: REST эндпоинт для получения информации об остатках
@@ -1303,78 +1302,78 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SkuInfoRequest'
+              $ref: "#/components/schemas/SkuInfoRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/SkuInfoResponseStockInfoResponse'
+                $ref: "#/components/schemas/SkuInfoResponseStockInfoResponse"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
       summary: Получение информации об остатках
       tags:
-        - Magnit Market API - Остатки
-      security:
-        - apiKeyAuth: []
+      - Magnit Market API - Остатки
   /seller/v1/products/sku/tasks/{task_id}/status:
     get:
-      description: REST эндпоинт для получения статуса задачи создания/обновления СКУ
+      description: REST эндпоинт для получения статуса задачи создания СКУ
       operationId: getTaskStatus
       parameters:
-        - in: path
-          name: task_id
-          required: true
-          schema:
-            type: string
+      - in: path
+        name: task_id
+        required: true
+        schema:
+          type: string
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/TaskStatusResponse'
+                $ref: "#/components/schemas/TaskStatusResponse"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
-      summary: Получение статуса задачи создания/обновления СКУ
-      tags:
-        - Magnit Market API - Товары
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+      summary: Получение статуса задачи создания СКУ
+      tags:
+      - Magnit Market API - Товары
   /seller/v1/shops:
     get:
       description: REST эндпоинт для получения списка активных магазинов
       operationId: getShops
       responses:
-        '200':
+        "200":
           content:
-            application/json:
+            '*/*':
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ShopDto'
+                  $ref: "#/components/schemas/ShopDto"
           description: OK
-        '400':
+        "400":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                type: string
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
       summary: Получение списка магазинов
       tags:
-        - Magnit Market API - Магазины
-      security:
-        - apiKeyAuth: []
+      - Magnit Market API - Магазины
   #magnit-market-seller-api-lms
   /seller/v1/orders/list/unprocessed:
     post:
@@ -4072,9 +4071,6 @@ components:
     #magnit-market-seller-api-schema-begin
     #magnit-market-seller-api-schema-goods
     ApiErrorResponse:
-      required:
-        - code
-        - message
       type: object
       properties:
         code:
@@ -4088,40 +4084,36 @@ components:
           description: Error message
         payload:
           type: object
-    CategoryCharacteristicsRequest:
       required:
-        - category_ids
+      - code
+      - message
+    CategoryCharacteristicsRequest:
       type: object
       properties:
         category_ids:
           type: array
-          description: >-
-            Список ID категорий, для которых необходимо получить характеристики. 
-            Эти ID будут обработаны для получения соответствующих характеристик 
-            только для активных категорий. Будут учитываться только идентификаторы 
-            категорий, помеченных как активные.
+          description: "Список идентификаторов категорий, для которых необходимо п\
+            олучить характеристики. Обрабатываются только идентификаторы активных\
+            \ категорий - характеристики будут возвращены только для них."
           example:
-            - 123123
-            - 123124
+          - 123123
+          - 123124
           items:
             type: integer
-            description: >-
-              Список идентификаторов категорий, для которых необходимо получить характеристики. 
-              Эти идентификаторы будут обработаны для получения соответствующих характеристик 
-              только для активных категорий. Будут учитываться только идентификаторы категорий, 
-              помеченных как активные.
             format: int64
-    CharacteristicAttribute:
+            description: "Список идентификаторов категорий, для которых необходимо\
+              \ получить характеристики. Обрабатываются только идентификаторы акти\
+              вных категорий - характеристики будут возвращены только для них."
       required:
-        - id
-        - title
-        - value
+      - category_ids
+    CharacteristicAttribute:
       type: object
+      description: "Список характеристик, связанных со словарем"
       properties:
         id:
           type: integer
-          description: Уникальный идентификатор характеристики
           format: int64
+          description: Уникальный идентификатор характеристики
           example: 101
         title:
           type: string
@@ -4131,28 +4123,33 @@ components:
           type: string
           description: Значение характеристики
           example: Красный
-      description: Список характеристик, связанных со словарем
-    CreateSkuRequest:
       required:
-        - sku_list
+      - id
+      - title
+      - value
+    CreateSkuRequest:
       type: object
       properties:
         sku_list:
           type: array
           description: Массив со списком SKU
           items:
-            $ref: '#/components/schemas/SkuRequest'
+            $ref: "#/components/schemas/SkuRequest"
+      required:
+      - sku_list
     CreateSkuResponse:
       type: object
       properties:
         task_id:
           type: integer
           format: int64
+          description: Идентификатор задачи создания СКУ. Используется для отслеживания
+            статуса запроса.
+          example: 1234
     CustomSkuCharacteristic:
-      required:
-        - characteristic_title
-        - characteristic_value
       type: object
+      description: Пользовательские характеристики sku для объединения SKU в одну
+        карточку товара
       properties:
         characteristic_title:
           type: string
@@ -4160,133 +4157,138 @@ components:
         characteristic_value:
           type: string
           description: Значение характеристики
-      description: >-
-        Пользовательские характеристики sku для объединения SKU в одну карточку
-        товара
-    DictionaryPagination:
       required:
-        - page
-        - page_size
+      - characteristic_title
+      - characteristic_value
+    DictionaryPagination:
       type: object
+      description: Детали пагинации для ответа словаря
       properties:
         page:
-          minimum: 0
           type: integer
+          format: int32
           description: Номер текущей страницы
-          format: int32
           example: 0
+          minimum: 0
         page_size:
-          maximum: 50
           type: integer
-          description: Количество элементов на странице
           format: int32
+          description: Количество элементов на странице
           example: 10
-      description: Детали пагинации для ответа словаря
-    DictionaryResponse:
+          maximum: 50
       required:
-        - characteristic_attributes
-        - characteristic_title
-        - dictionary_id
-        - pagination
-        - system_characteristic
+      - page
+      - page_size
+    DictionaryResponse:
       type: object
       properties:
         characteristic_attributes:
           type: array
-          description: Список характеристик, связанных со словарем
+          description: "Список характеристик, связанных со словарем"
           items:
-            $ref: '#/components/schemas/CharacteristicAttribute'
+            $ref: "#/components/schemas/CharacteristicAttribute"
         characteristic_title:
           type: string
-          description: Название характеристики, связанной со словарем
+          description: "Название характеристики, связанной со словарем"
           example: Размер
         dictionary_id:
           type: integer
-          description: Уникальный идентификатор словаря
           format: int64
+          description: Уникальный идентификатор словаря
           example: 1
         pagination:
-          $ref: '#/components/schemas/DictionaryPagination'
+          $ref: "#/components/schemas/DictionaryPagination"
         system_characteristic:
           type: boolean
-          description: Флаг, указывающий, является ли характеристика системной
+          description: "Флаг, указывающий, является ли характеристика системной"
           example: true
+      required:
+      - characteristic_attributes
+      - characteristic_title
+      - dictionary_id
+      - pagination
+      - system_characteristic
     ErrorInfo:
       type: object
+      description: Список ошибок при обработке товаров
       properties:
         attribute_error:
           type: string
+          description: "Поле, в котором произошла ошибка"
         message:
           type: string
+          description: Текст ошибки
         seller_sku_id:
           type: string
+          description: Идентификатор СКУ в системе продавца
         status:
           type: string
+          description: Статус обработки СКУ
     ExternalSellerCategoryDto:
-      required:
-        - category_id
-        - category_string_path
-        - category_title
       type: object
       properties:
         category_id:
           type: integer
-          description: Unique identifier of the category
           format: int64
+          description: Уникальный идентификатор категории
           example: 123
         category_string_path:
           type: string
-          description: >-
-            Полный путь к категории, показывающий иерархию от родительской 
-            до текущей категории, разделенный символом "->"
-          example: Electronics -> Computers -> Laptops
+          description: "Полный путь категории, отображающий иерархию от родительск\
+            ой до текущей категории, разделённый '->'"
+          example: Электроника -> Компьютеры -> Ноутбуки
         category_title:
           type: string
-          description: The name of the category
-          example: Laptops
-    ExternalSellerCharacteristicsDto:
+          description: Название категории
+          example: Ноутбуки
       required:
-        - category_id
-        - category_title
-        - defined_characteristic
-        - product_filter
+      - category_id
+      - category_string_path
+      - category_title
+    ExternalSellerCharacteristicsDto:
       type: object
       properties:
         category_id:
           type: integer
-          description: Unique identifier of the category
           format: int64
+          description: Уникальный идентификатор категории
           example: 123
         category_title:
           type: string
-          description: Name of the category
-          example: Laptops
+          description: Название категории
+          example: Ноутбуки
         defined_characteristic:
           type: array
-          description: Defined characteristics of the category
+          description: Определённые характеристики категории
           items:
-            $ref: '#/components/schemas/SkuCharacteristicCategoryDto'
+            $ref: "#/components/schemas/SkuCharacteristicCategoryDto"
         product_filter:
           type: array
-          description: Product filter characteristics of the category
+          description: "Характеристики категории, используемые как фильтры для тов\
+            аров"
           items:
-            $ref: '#/components/schemas/SkuCharacteristicCategoryDto'
+            $ref: "#/components/schemas/SkuCharacteristicCategoryDto"
         sku_filter:
           type: array
-          description: SKU filter characteristics of the category
+          description: "Характеристики категории, используемые как фильтры для SKU"
           items:
-            $ref: '#/components/schemas/SkuCharacteristicCategoryDto'
+            $ref: "#/components/schemas/SkuCharacteristicCategoryDto"
+      required:
+      - category_id
+      - category_title
+      - defined_characteristic
+      - product_filter
     GenericResponse:
       type: object
       properties:
         error:
           type: string
+          example: "null"
           readOnly: true
-          example: 'null'
         errors:
           type: array
           items:
-            $ref: '#/components/schemas/ApiErrorResponse'
+            $ref: "#/components/schemas/ApiErrorResponse"
         payload:
           type: object
           description: Response payload
@@ -4295,114 +4297,67 @@ components:
           format: date-time
         trace:
           type: string
-    SkuErrorResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          description: Общее сообщение об ошибке
-          example: "Ошибка валидации SKU"
-        total_upload:
-          type: integer
-          format: int32
-          description: Общее количество загруженных SKU
-          example: 0
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/SkuValidationError'
-      description: Ответ с ошибками валидации SKU
-    SkuValidationError:
-      type: object
-      properties:
-        seller_sku_id:
-          type: string
-          description: Идентификатор SKU в системе продавца
-        status:
-          type: string
-          description: Статус обработки SKU
-        message:
-          type: string
-          description: Сообщение об ошибке для данного SKU
-        attribute_errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/FieldError'
-      description: Информация об ошибках валидации конкретного SKU
-    FieldError:
-      type: object
-      properties:
-        attribute:
-          type: string
-          description: Название атрибута, в котором произошла ошибка
-        attribute_id:
-          type: string
-          description: Идентификатор атрибута
-        error:
-          type: string
-          description: Текст ошибки валидации
-      description: Детальная информация об ошибке валидации поля
-    Pagination:
-      required:
-        - dir
-        - page
-        - page_size
-      type: object
-      properties:
-        dir:
-          type: string
-          description: Направление сортировки
-          example: DESC
-          enum:
-            - ASC
-            - DESC
-        page:
-          minimum: 0
-          type: integer
-          description: Страница
-          format: int64
-          example: 0
-        page_size:
-          maximum: 1000
-          minimum: 1
-          type: integer
-          description: Количество записей на странице
-          format: int64
-          example: 25
-      description: Пагинация
     KeySetPagination:
-      required:
-        - dir
-        - last_key
-        - limit
       type: object
+      description: KeySet пагинация
       properties:
         dir:
           type: string
           description: Направление сортировки
-          example: DESC
           enum:
-            - ASC
-            - DESC
+          - ASC
+          - DESC
+          example: DESC
         last_key:
-          minimum: 0
           type: integer
-          description: Идентификатор записи, с которого начинать чтение
           format: int64
+          description: "Идентификатор записи, с которого начинать чтение. Для полу\
+            чения следующей страницы используйте максимальный sku_id из предыдущег\
+            о ответа"
           example: 0
+          minimum: 0
         limit:
+          type: integer
+          format: int64
+          description: Максимальное количество возвращаемых данных
+          example: 25
           maximum: 1000
           minimum: 1
-          type: integer
-          description: Максимальное количество возвращаемых данных
-          format: int64
-          example: 25
-      description: KeySet пагинация
-    PriceDto:
       required:
-        - currency_code
-        - price
+      - dir
+      - last_key
+      - limit
+    Pagination:
       type: object
+      description: Пагинация
+      properties:
+        dir:
+          type: string
+          description: Направление сортировки
+          enum:
+          - ASC
+          - DESC
+          example: DESC
+        page:
+          type: integer
+          format: int64
+          description: Страница
+          example: 0
+          minimum: 0
+        page_size:
+          type: integer
+          format: int64
+          description: Количество записей на странице
+          example: 25
+          maximum: 1000
+          minimum: 1
+      required:
+      - dir
+      - page
+      - page_size
+    PriceDto:
+      type: object
+      description: Данные по ценам
       properties:
         currency_code:
           type: string
@@ -4420,12 +4375,15 @@ components:
           example: bdd8c471a3b0a3c1
         sku_id:
           type: integer
-          description: Идентификатор sku (формирует ММ)
           format: int64
+          description: Идентификатор sku (формирует ММ)
           example: 121
-      description: Данные по ценам
+      required:
+      - currency_code
+      - price
     PriceInfoResponse:
       type: object
+      description: Данные по ценам
       properties:
         commission_amount:
           type: number
@@ -4435,8 +4393,8 @@ components:
           description: Код валюты комиссии
         commission_percent:
           type: integer
-          description: Процент комиссии
           format: int64
+          description: Процент комиссии
         currency_code:
           type: string
           description: Код валюты
@@ -4452,19 +4410,16 @@ components:
           example: bdd8c471a3b0a3c1
         sku_id:
           type: integer
-          description: Идентификатор sku (формирует ММ)
           format: int64
+          description: Идентификатор sku (формирует ММ)
           example: 121
         timestamp:
           type: string
-          description: Дата последнего обновления
           format: date-time
-      description: Данные по ценам
+          description: Дата последнего обновления
     PriceUpdateResponse:
-      required:
-        - currency_code
-        - price
       type: object
+      description: Данные по ценам с ошибками
       properties:
         currency_code:
           type: string
@@ -4485,81 +4440,151 @@ components:
           example: bdd8c471a3b0a3c1
         sku_id:
           type: integer
-          description: Идентификатор sku (формирует ММ)
           format: int64
+          description: Идентификатор sku (формирует ММ)
           example: 121
-      description: Данные по ценам с ошибками
-    PricesRequest:
       required:
-        - prices
+      - currency_code
+      - price
+    PricesRequest:
       type: object
+      description: Запрос на обновление данные по ценам
       properties:
         prices:
           type: array
           description: Массив цен
           items:
-            $ref: '#/components/schemas/PriceDto'
-      description: Запрос на обновление данные по ценам
-    ProductDeleteRequest:
+            $ref: "#/components/schemas/PriceDto"
       required:
-        - product_ids
+      - prices
+    ProductDeleteRequest:
       type: object
+      description: Запрос на удаление продуктов
       properties:
         product_ids:
           type: array
           description: Список идентификаторов продукта
           items:
             type: integer
-            description: Список идентификаторов продукта
             format: int64
-      description: Запрос на удаление продуктов
+            description: Список идентификаторов продукта
+      required:
+      - product_ids
     ProductDeleteResponse:
       type: object
       properties:
         error_msg:
           type: string
+          description: "Текст ошибки, полученной при попытке удаления продукта"
         product_id:
           type: integer
           format: int64
+          description: Идентификатор продукта
         success:
           type: boolean
+          description: Флаг успешности удаления продукта
     ProductVisualEffects:
-      required:
-        - url
       type: object
+      description: Объект с URL архива.zip с фотографиями внутри в формате .jpg
       properties:
         url:
           type: string
           description: Конечный URL
-      description: Объект с URL архива.zip с фотографиями внутри в формате .jpg
+      required:
+      - url
     ShopDto:
       type: object
       properties:
         id:
           type: integer
-          description: Идентификатор магазина
           format: int64
+          description: Идентификатор магазина
           example: 123
         title:
           type: string
           description: Название магазина
           example: Березка
+    ShortSkuInfo:
+      type: object
+      description: Данные по sku после маппинга
+      properties:
+        barcode:
+          type: integer
+          format: int64
+          description: Штрихкод SKU
+        product_id:
+          type: integer
+          format: int64
+          description: Идентификатор продукта
+        seller_sku_id:
+          type: string
+          description: Внешний идентификатор SKU
+        sku_id:
+          type: integer
+          format: int64
+          description: Внутренний идентификатор SKU
+    ShortSkuInfoFilter:
+      type: object
+      description: Фильтры для поиска по sku ID или external sku ID
+      properties:
+        seller_sku_ids:
+          type: array
+          description: Список внешних (селлерских) идентификаторов СКУ
+          items:
+            type: string
+            description: Список внешних (селлерских) идентификаторов СКУ
+          maxItems: 1000
+          minItems: 0
+        sku_ids:
+          type: array
+          description: Список внутренних идентификаторов СКУ
+          items:
+            type: integer
+            format: int64
+            description: Список внутренних идентификаторов СКУ
+          maxItems: 1000
+          minItems: 0
+    ShortSkuInfoRequest:
+      type: object
+      description: Запрос для получения компактной информации об СКУ
+      properties:
+        filters:
+          $ref: "#/components/schemas/ShortSkuInfoFilter"
+        pagination:
+          $ref: "#/components/schemas/KeySetPagination"
+    ShortSkuInfoResponse:
+      type: object
+      description: "Ответ, содержащий компактную информацию по найденным СКУ"
+      properties:
+        result:
+          type: array
+          description: Массив найденных СКУ
+          items:
+            $ref: "#/components/schemas/ShortSkuInfo"
+        result_count:
+          type: integer
+          format: int32
+          description: Количество найденных СКУ
+        shop_id:
+          type: integer
+          format: int64
+          description: Идентификатор магазина
     SkuArchiveRequest:
       type: object
       properties:
         seller_sku_ids:
           type: array
-          description: Список идентификаторов sku в системе продавца
+          description: Список идентификаторов СКУ в системе селлера
           items:
             type: string
-            description: Список идентификаторов sku в системе продавца
+            description: Список идентификаторов СКУ в системе селлера
         sku_ids:
           type: array
-          description: Список идентификаторов sku
+          description: Список внутренних идентификаторов СКУ
           items:
             type: integer
-            description: Список идентификаторов sku
             format: int64
+            description: Список внутренних идентификаторов СКУ
     SkuArchiveResponse:
       type: object
       properties:
@@ -4571,125 +4596,116 @@ components:
           example: bdd8c471a3b0a3c1
         sku_id:
           type: integer
-          description: Идентификатор sku (формирует ММ)
           format: int64
+          description: Идентификатор sku (формирует ММ)
           example: 121
         success:
           type: boolean
     SkuCharacteristic:
-      required:
-        - characteristic_id
-        - characteristic_value
       type: object
+      description: "Характеристики, относящиеся к Продукту"
       properties:
         characteristic_id:
           type: integer
-          description: Идентификатор справочника
           format: int64
+          description: Идентификатор справочника
         characteristic_value:
           type: string
           description: Значение характеристики
-      description: Характеристики SKU
-    SkuCharacteristicCategoryDto:
       required:
-        - characteristic_title
-        - dictionary_id
-        - system_characteristic
-        - type
-        - required
+      - characteristic_id
+      - characteristic_value
+    SkuCharacteristicCategoryDto:
       type: object
+      description: "Характеристики категории, используемые как фильтры для SKU"
       properties:
         characteristic_title:
           type: string
-          description: Name of the characteristic
-          example: Color
+          description: Название характеристики
+          example: Цвет
         dictionary_id:
           type: integer
-          description: Unique identifier of the characteristic
           format: int64
+          description: Уникальный идентификатор характеристики
           example: 101
+        extendable_values:
+          type: boolean
+          description: "Признак того, что значения фильтра SKU могут быть расширен\
+            ы"
+          example: true
+        input_type:
+          type: string
+          description: Тип ввода значения фильтра для SKU
+          enum:
+          - RANGED_VALUE
+          - SINGLE_CHOICE
+          - MULTIPLE_CHOICE
+          example: SINGLE_CHOICE
+        max_allowed_values:
+          type: integer
+          format: int32
+          description: Максимально допустимое количество значений для фильтра SKU
+          example: 5
+        required:
+          type: boolean
+          description: Признак обязательности заполнения характеристики
+          example: true
         system_characteristic:
           type: boolean
-          description: >-
-            Флаг, указывающий, является ли характеристика системной (true)
-            или фильтрующим свойством (false).
+          description: "Признак того, что характеристика является системной (true)\
+            \ или фильтрующей (false)"
           example: true
         type:
           type: string
-          description: Type of the characteristic
-          example: DEFINED
+          description: Тип характеристики
           enum:
-            - DEFINED
-            - PRODUCT
-            - SKU
-        required:
-          type: boolean
-          description: >-
-            Флаг, указывающий, является ли характеристика обязательной (true)
-            или опциональной (false).
-          example: true
-      description: SKU filter characteristics of the category
+          - DEFINED
+          - PRODUCT
+          - SKU
+          example: DEFINED
+      required:
+      - characteristic_title
+      - dictionary_id
+      - required
+      - system_characteristic
+      - type
     SkuFilter:
       type: object
+      description: Фильтры SKU
       properties:
-        shop_id:
+        characteristic_id:
           type: integer
-          format: int32
-          description: Идентификатор магазина
-        category_id:
-          type: integer
-          format: int32
-          description: Идентификатор категории
-      description: Фильтр SKU
-    SkuFilterWithIds:
-      type: object
-      properties:
-        seller_sku_ids:
+          format: int64
+          description: Идентификатор справочника
+        characteristic_values:
           type: array
-          description: Массив идентификаторов sku в системе продавца
+          description: Массив значений фильтра
           items:
-            type: string
-            description: Массив идентификаторов sku в системе продавца
-        sku_ids:
-          type: array
-          description: Массив идентификаторов sku (формирует ММ)
-          items:
-            type: integer
-            description: Массив идентификаторов sku (формирует ММ)
-            format: int64
-      description: Фильтр с указанием id
-    SkuInfo:
+            $ref: "#/components/schemas/SkuFilterValue"
       required:
-        - barcode
-        - category_id
-        - currency_code
-        - depth
-        - description
-        - height
-        - is_active
-        - is_archive
-        - is_blocked
-        - is_no_stock
-        - okpd2
-        - price
-        - product_id
-        - product_images
-        - seller_sku_id
-        - sku_id
-        - title
-        - vat
-        - weight
-        - width
+      - characteristic_id
+      - characteristic_values
+    SkuFilterValue:
       type: object
+      description: Массив значений фильтра
+      properties:
+        characteristic_value:
+          type: string
+          description: Значение фильтра
+      required:
+      - characteristic_value
+    SkuInfo:
+      type: object
+      description: Информация о SKU
       properties:
         barcode:
           type: integer
-          description: Штрихкод
           format: int64
+          description: Штрихкод
         category_id:
           type: integer
-          description: Идентификатор категории
           format: int64
+          description: Идентификатор категории
         certificate:
           type: string
           description: Сертификат
@@ -4703,18 +4719,19 @@ components:
           type: array
           description: Пользовательские характеристики SKU
           items:
-            $ref: '#/components/schemas/CustomSkuCharacteristic'
+            $ref: "#/components/schemas/CustomSkuCharacteristic"
         depth:
           type: integer
-          description: Глубина в мм
           format: int64
+          deprecated: true
+          description: "Глубина в мм (deprecated, используйте поле length)"
         description:
           type: string
           description: Описание
         height:
           type: integer
-          description: Высота в мм
           format: int64
+          description: Высота в мм
         instruction:
           type: string
           description: Инструкция
@@ -4730,31 +4747,41 @@ components:
         is_no_stock:
           type: boolean
           description: Признак отсутствия на складе
+        length:
+          type: integer
+          format: int64
+          description: Длина в мм (приоритетное поле)
         okpd2:
           type: string
           description: Код ОКПД2
         old_price:
           type: integer
-          description: Цена товара без скидки
           format: int32
+          description: Цена товара без скидки
         photo_360:
-          $ref: '#/components/schemas/ProductVisualEffects'
+          $ref: "#/components/schemas/ProductVisualEffects"
         price:
           type: integer
-          description: Цена продажи
           format: int32
+          description: Цена продажи
+        product_attributes:
+          type: array
+          description: Свойства товара
+          items:
+            type: string
+            description: Свойства товара
         product_id:
           type: integer
-          description: Идентификатор карточки товара
           format: int64
+          description: Идентификатор карточки товара
         product_images:
           type: array
           description: Изображения продукта
           items:
-            $ref: '#/components/schemas/ProductVisualEffects'
+            $ref: "#/components/schemas/ProductVisualEffects"
         seller_sku_id:
           type: string
-          description: Идентификатор SKU
+          description: Идентификатор SKU в системе селлера
         size_chart:
           type: string
           description: Таблица размеров
@@ -4762,11 +4789,11 @@ components:
           type: array
           description: Список характеристик SKU
           items:
-            $ref: '#/components/schemas/SkuCharacteristic'
+            $ref: "#/components/schemas/SkuCharacteristic"
         sku_id:
           type: integer
-          description: Идентификатор SKU
           format: int64
+          description: Идентификатор SKU
         title:
           type: string
           description: Название
@@ -4774,283 +4801,297 @@ components:
           type: string
           description: Ставка НДС
         video:
-          $ref: '#/components/schemas/ProductVisualEffects'
+          $ref: "#/components/schemas/ProductVisualEffects"
         weight:
           type: integer
-          description: Вес в граммах
           format: int64
+          description: Вес в граммах
         width:
           type: integer
-          description: Ширина в мм
           format: int64
-      description: Информация о SKU
-    SkuInfoRequest:
+          description: Ширина в мм
       required:
-        - pagination
+      - barcode
+      - category_id
+      - currency_code
+      - description
+      - height
+      - is_active
+      - is_archive
+      - is_blocked
+      - is_no_stock
+      - length
+      - okpd2
+      - price
+      - product_id
+      - product_images
+      - seller_sku_id
+      - sku_id
+      - title
+      - vat
+      - weight
+      - width
+    SkuInfoRequest:
       type: object
+      description: Запрос на получение данных по SKU
       properties:
         filter:
-          $ref: '#/components/schemas/SkuFilterWithIds'
+          $ref: "#/components/schemas/SkuFilter"
         pagination:
-          $ref: '#/components/schemas/Pagination'
-      description: Запрос на получение данных по SKU
+          $ref: "#/components/schemas/Pagination"
+      required:
+      - pagination
     SkuInfoResponsePriceInfoResponse:
       type: object
+      description: Ответ на запрос данных по остаткам
       properties:
         result:
           type: array
           items:
-            $ref: '#/components/schemas/PriceInfoResponse'
-      description: Ответ на запрос данных по остаткам
+            $ref: "#/components/schemas/PriceInfoResponse"
     SkuInfoResponsePriceUpdateResponse:
       type: object
+      description: Ответ на запрос данных по остаткам
       properties:
         result:
           type: array
           items:
-            $ref: '#/components/schemas/PriceUpdateResponse'
-      description: Ответ на запрос данных по остаткам
+            $ref: "#/components/schemas/PriceUpdateResponse"
     SkuInfoResponseProductDeleteResponse:
       type: object
+      description: Ответ на запрос данных по остаткам
       properties:
         result:
           type: array
           items:
-            $ref: '#/components/schemas/ProductDeleteResponse'
-      description: Ответ на запрос данных по остаткам
+            $ref: "#/components/schemas/ProductDeleteResponse"
     SkuInfoResponseSkuArchiveResponse:
       type: object
+      description: Ответ на запрос данных по остаткам
       properties:
         result:
           type: array
           items:
-            $ref: '#/components/schemas/SkuArchiveResponse'
-      description: Ответ на запрос данных по остаткам
+            $ref: "#/components/schemas/SkuArchiveResponse"
     SkuInfoResponseStockInfoResponse:
       type: object
+      description: Ответ на запрос данных по остаткам
       properties:
         result:
           type: array
           items:
-            $ref: '#/components/schemas/StockInfoResponse'
-      description: Ответ на запрос данных по остаткам
+            $ref: "#/components/schemas/StockInfoResponse"
     SkuListRequest:
-      required:
-        - pagination
       type: object
+      description: Запрос на получение списка SKU
       properties:
         filter:
-          $ref: '#/components/schemas/SkuFilter'
+          $ref: "#/components/schemas/SkuFilter"
         pagination:
-          $ref: '#/components/schemas/Pagination'
-      description: Запрос на получение списка SKU
-    SkuListResponse:
+          $ref: "#/components/schemas/Pagination"
       required:
-        - result
+      - pagination
+    SkuListResponse:
       type: object
+      description: Ответ со списком SKU
       properties:
         result:
           type: array
           description: Список найденных SKU
           items:
-            $ref: '#/components/schemas/SkuInfo'
-      description: Ответ со списком SKU
-    ShortSkuInfoRequest:
-      type: object
-      properties:
-        filters:
-          $ref: '#/components/schemas/ShortSkuInfoFilter'
-        pagination:
-          $ref: '#/components/schemas/KeySetPagination'
-      description: Запрос для получения компактной информации об СКУ
-    ShortSkuInfoResponse:
-      type: object
-      properties:
-        result:
-          type: array
-          description: Массив найденных СКУ
-          items:
-            $ref: '#/components/schemas/ShortSkuInfo'
-        result_count:
-          type: integer
-          description: Количество найденных СКУ
-          format: int32
-        shop_id:
-          type: integer
-          description: Идентификатор магазина
-          format: int64
-      description: Ответ, содержащий компактную информацию по найденным СКУ
-    ShortSkuInfoFilter:
-      type: object
-      properties:
-        seller_sku_ids:
-          maxItems: 1000
-          minItems: 0
-          type: array
-          description: Массив внешних (селлерских) идентификаторов СКУ
-          items:
-            type: string
-            description: Массив внешних (селлерских) идентификаторов СКУ
-        sku_ids:
-          maxItems: 1000
-          minItems: 0
-          type: array
-          description: Массив внутренних идентификаторов СКУ
-          items:
-            type: integer
-            description: Массив внутренних идентификаторов СКУ
-            format: int64
-      description: Фильтры для поиска по sku ID или external sku ID
-    ShortSkuInfo:
-      type: object
-      properties:
-        barcode:
-          type: integer
-          description: Баркод SKU
-          format: int64
-        product_id:
-          type: integer
-          description: Идентификатор продукта
-          format: int64
-        seller_sku_id:
-          type: string
-          description: Внешний идентификатор SKU
-        sku_id:
-          type: integer
-          description: Внутренний идентификатор SKU
-          format: int64
-      description: Данные по sku после маппинга
-    SkuRequest:
+            $ref: "#/components/schemas/SkuInfo"
       required:
-        - category_id
-        - currency_code
-        - depth
-        - description
-        - height
-        - price
-        - product_images
-        - seller_sku_id
-        - shop_id
-        - short_description
-        - title
-        - vat
-        - weight
-        - width
-        - sku_group_id
+      - result
+    SkuRequest:
       type: object
+      description: Массив со списком SKU
       properties:
         barcode:
           type: integer
-          description: >-
-            Штрихкод SKU, в случае если он не будет передан Магнит Маркет
-            создаст его
           format: int64
+          description: "Штрихкод SKU, в случае если он не будет передан Магнит Мар\
+            кет создаст его"
         category_id:
           type: integer
-          description: Идентификатор категории
           format: int64
+          description: Идентификатор категории
         certificate:
           type: string
-          description: Сертификаты, конечный URL файла в jpg, png, pdf
+          description: "Сертификаты, конечный URL файла в jpg, png, pdf"
         composition:
           type: string
-          description: 'Состав товара: конечный URL файла в jpg, png, pdf'
+          description: "Состав товара: конечный URL файла в jpg, png, pdf"
         currency_code:
           type: string
-          description: 'Валюта цен. Возможные значения: RUB — российский рубль'
+          description: "Валюта цен. Возможные значения: RUB — российский рубль"
         custom_characteristic_values_skus:
           type: array
-          description: >-
-            Пользовательские характеристики sku для объединения SKU в одну
+          description: Пользовательские характеристики sku для объединения SKU в одну
             карточку товара
           items:
-            $ref: '#/components/schemas/CustomSkuCharacteristic'
+            $ref: "#/components/schemas/CustomSkuCharacteristic"
+        defined_characteristic_list:
+          type: array
+          description: Предопределенные характеристики
+          items:
+            $ref: "#/components/schemas/SkuCharacteristic"
         depth:
           type: integer
-          description: Глубина в мм
           format: int32
+          deprecated: true
+          description: "Глубина в мм (deprecated, используйте поле length)"
         description:
           type: string
-          description: Описание, единое для карточки товара
+          description: "Описание, единое для карточки товара. Ограничение: до 3000\
+            \ символов"
+          maxLength: 3000
+          minLength: 0
         height:
           type: integer
-          description: Высота в мм
           format: int32
+          description: Высота в мм
         instruction:
           type: string
-          description: 'Инструкция по уходу и применению: конечный URL файла в jpg, png, pdf'
+          description: "Инструкция по уходу и применению: конечный URL файла в jpg,\
+            \ png, pdf"
+        length:
+          type: integer
+          format: int32
+          description: Длина в мм (приоритет над полем depth)
         okpd2:
           type: string
           description: Общероссийский классификатор продукции
         old_price:
           type: integer
-          description: Цена товара без скидки (зачеркнутая). Не может быть меньше или равна текущей цене (price)
           format: int32
+          description: Цена товара без скидки (зачеркнутая)
         photo360:
-          $ref: '#/components/schemas/ProductVisualEffects'
+          $ref: "#/components/schemas/ProductVisualEffects"
         price:
           type: integer
-          description: Цена продажи (возможна скидка)
           format: int32
-        product_images:
+          description: Цена продажи (возможна скидка)
+        product_attributes:
           type: array
-          description: >-
-            Массив объектов с URL файлов в jpg, png, pdf с фото товаров
+          description: Свойства товара
           items:
-            $ref: '#/components/schemas/ProductVisualEffects'
-        seller_sku_id:
-          type: string
-          description: Уникальный идентификатор SKU в системе селлера
-        shop_id:
-          type: integer
-          description: Идентификатор магазина
-          format: int64
-        short_description:
-          type: string
-          description: Краткое описание, единое для карточки товара
-        size_chart:
-          type: string
-          description: Конечный URL файла с размерной сеткой в jpg, png, pdf
-        sku_characteristic_list:
-          type: array
-          description: Характеристики SKU
-          items:
-            $ref: '#/components/schemas/SkuCharacteristic'
-        defined_characteristic_list:
-          type: array
-          description: Предопределенные характеристики SKU
-          items:
-            $ref: '#/components/schemas/SkuCharacteristic'
+            type: string
+            description: Свойства товара
+          maxItems: 10
+          minItems: 0
         product_filters_list:
           type: array
-          description: Продуктовые фильтры
+          description: "Характеристики, относящиеся к Продукту"
           items:
-            $ref: '#/components/schemas/SkuCharacteristic'
+            $ref: "#/components/schemas/SkuCharacteristic"
+        product_images:
+          type: array
+          description: "Массив объектов с URL файлов в jpg, png, pdf с фото товаро\
+            в; может быть несколько фото (до 10 штук)"
+          items:
+            $ref: "#/components/schemas/ProductVisualEffects"
+        seller_sku_id:
+          type: string
+          description: "Уникальный идентификатор SKU в системе селлера. Длина: до\
+            \ 80 символов. Допустимые символы: латиница (a-zA-Z), кириллица (а-яА\
+            -Я, кроме ёЁ), цифры (0-9), некоторые специальные символы .,\\/()[]-=_."
+        shop_id:
+          type: integer
+          format: int64
+          description: Идентификатор магазина
+        short_description:
+          type: string
+          description: "Краткое описание, единое для карточки товара. Ограничение\
+            : до 300 символов"
+          maxLength: 300
+          minLength: 0
+        size_chart:
+          type: string
+          description: "Конечный URL файла с размерной сеткой в jpg, png, pdf"
+        sku_characteristic_list:
+          type: array
+          deprecated: true
+          description: Характеристики SKU
+          items:
+            $ref: "#/components/schemas/SkuCharacteristic"
+        sku_filter_list:
+          type: array
+          description: Фильтры SKU
+          items:
+            $ref: "#/components/schemas/SkuFilter"
         sku_group_id:
           type: string
-          description: Идентификатор группы SKU
+          description: "Идентификатор группы SKU. Укажите одинаковые значения для\
+            \ всех SKU, которые должны быть объединены в одну карточку товара.Форм\
+            ат: длина не более 80 символов, a-zA-Z0-9, а-яА-Я0-9 (кроме ёЁ), допус\
+            тимы специальные символы .,\\/()[]-=_."
         title:
           type: string
-          description: Название, единое для карточки товара
+          description: "Название, единое для карточки товара"
         vat:
           type: string
-          description: 'НДС. Возможные значения: 0, 5, 7, 10, 20, "Не облагается"'
+          description: НДС
         video:
-          $ref: '#/components/schemas/ProductVisualEffects'
+          $ref: "#/components/schemas/ProductVisualEffects"
         weight:
           type: integer
-          description: Вес в граммах
           format: int32
+          description: Вес в граммах
         width:
           type: integer
-          description: Ширина в мм
           format: int32
-      description: Массив со списком SKU
-    StockDto:
+          description: Ширина в мм
       required:
-        - stock
-        - warehouse_id
+      - category_id
+      - currency_code
+      - description
+      - height
+      - length
+      - price
+      - product_images
+      - seller_sku_id
+      - shop_id
+      - short_description
+      - sku_group_id
+      - title
+      - vat
+      - weight
+      - width
+    SkuWarning:
       type: object
+      description: Расшифровка по незначительным ошибкам
+      properties:
+        attributes:
+          type: array
+          description: Блок с расшифровкой незначительных ошибок при обновлении sku
+          items:
+            $ref: "#/components/schemas/SkuWarningAttribute"
+        seller_sku_id:
+          type: string
+          description: SKU id продавца
+        status:
+          type: string
+          description: Статус конкретного sku
+      required:
+      - attributes
+      - seller_sku_id
+      - status
+    SkuWarningAttribute:
+      type: object
+      description: Расшифровка по незначительным ошибкам
+      properties:
+        attribute:
+          type: string
+          description: Проблемный атрибут
+        message:
+          type: string
+          description: Предупреждение
+      required:
+      - attribute
+      - message
+    StockDto:
+      type: object
+      description: Данные по остаткам на складе продавца
       properties:
         seller_sku_id:
           type: string
@@ -5058,40 +5099,43 @@ components:
           example: bdd8c471a3b0a3c1
         sku_id:
           type: integer
-          description: Идентификатор sku (формирует ММ)
           format: int64
+          description: Идентификатор sku (формирует ММ)
           example: 121
         stock:
           type: integer
-          description: Остаток на складе селлера
           format: int64
+          description: Остаток на складе селлера
           example: 1
         warehouse_id:
           type: string
-          description: Идентификатор склада (формирует ММ)
           format: uuid
+          description: Идентификатор склада (формирует ММ)
           example: bdd8c471-3dc8-4dd0-a544-30b5a3b0a3c1
-      description: Данные по остаткам на складе продавца
+      required:
+      - stock
+      - warehouse_id
     StockInfoDetails:
       type: object
+      description: Детальные данные по остаткам
       properties:
         reserved:
           type: integer
-          description: Количество зарезервированных товаров на складе
           format: int64
+          description: Количество зарезервированных товаров на складе
           example: 3
         stock:
           type: integer
-          description: Количество товара
           format: int64
+          description: Количество товара
           example: 120
         type:
           type: string
           description: Тип склада
           example: FBS
-      description: Детальные данные по остаткам
     StockInfoResponse:
       type: object
+      description: Данные по остаткам
       properties:
         seller_sku_id:
           type: string
@@ -5099,42 +5143,54 @@ components:
           example: 30b5a3b0a3c1
         sku_id:
           type: integer
-          description: Идентификатор sku (формирует ММ)
           format: int64
+          description: Идентификатор sku (формирует ММ)
           example: 11
         stock_info_details:
           type: array
           items:
-            $ref: '#/components/schemas/StockInfoDetails'
-      description: Данные по остаткам
+            $ref: "#/components/schemas/StockInfoDetails"
     StockRequest:
-      required:
-        - stocks
       type: object
+      description: Запрос на обновление данные по остаткам
       properties:
         stocks:
           type: array
           description: Список объектов с данными об остатках
           items:
-            $ref: '#/components/schemas/StockDto'
-      description: Запрос на обновление данные по остаткам
+            $ref: "#/components/schemas/StockDto"
+      required:
+      - stocks
     TaskStatusResponse:
       type: object
       properties:
+        count_warning:
+          type: integer
+          format: int32
+          description: Количество предупреждений
         error:
           type: array
+          description: Список ошибок при обработке товаров
           items:
-            $ref: '#/components/schemas/ErrorInfo'
+            $ref: "#/components/schemas/ErrorInfo"
+        status:
+          type: string
+          description: "Статус выполнения задачи: CREATED - создана, IN_PROGRESS -\
+            \ выполняется, CANCELLED - отменена, COMPLETED - завершена"
+          enum:
+          - CREATED
+          - IN_PROGRESS
+          - CANCELLED
+          - COMPLETED
         total_upload:
           type: integer
           format: int32
-        status:
-          type: string
-          enum:
-            - CREATED
-            - IN_PROGRESS
-            - CANCELLED
-            - COMPLETED
+          description: Количество успешно загруженных товаров
+        warnings:
+          type: array
+          description: Список предупреждений
+          items:
+            $ref: "#/components/schemas/SkuWarning"
     #magnit-market-seller-api-schema-lms
     MarketplacePaginationRequest:
       type: object
