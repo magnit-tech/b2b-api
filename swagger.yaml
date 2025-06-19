@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.25
+  version: 0.1.27
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -926,6 +926,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:categories
+        - mm:b2b:all
       summary: Получение списка категорий
       tags:
       - Magnit Market API - Категории
@@ -956,39 +959,47 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:categories
+        - mm:b2b:all
       summary: Получение списка характеристик
       tags:
-      - Magnit Market API - Товары
+      - Magnit Market API - Категории
   /seller/v1/products/dictionary:
     get:
       description: REST эндопинт для получения списка словарей
       operationId: getDictionaryValues
       parameters:
-      - in: query
+      - description: Идентификатор справочника
+        in: query
         name: dictionary_id
         required: true
         schema:
           type: integer
           format: int64
-      - in: query
+      - description: "Тип справочника (например, DEFINED, PRODUCT, SKU)"
+        in: query
         name: type
         required: true
         schema:
           type: string
-      - in: query
+      - description: Поисковый запрос для фильтрации значений справочника
+        in: query
         name: search
         required: false
         schema:
           type: string
           default: ""
-      - in: query
+      - description: Номер страницы для пагинации
+        in: query
         name: page
         required: false
         schema:
           type: integer
           format: int32
           default: 0
-      - in: query
+      - description: Количество элементов на странице
+        in: query
         name: page_size
         required: false
         schema:
@@ -1010,9 +1021,12 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:categories
+        - mm:b2b:all
       summary: Получение списка словарей
       tags:
-      - Magnit Market API - Товары
+      - Magnit Market API - Категории
   /seller/v1/products/sku:
     post:
       description: REST эндпоинт для создания списка СКУ
@@ -1038,6 +1052,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:products
+        - mm:b2b:all
       summary: Создание СКУ
       tags:
       - Magnit Market API - Товары
@@ -1066,6 +1083,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:products
+        - mm:b2b:all
       summary: Получение списка СКУ
       tags:
       - Magnit Market API - Товары
@@ -1094,6 +1114,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:prices
+        - mm:b2b:all
       summary: Обновление цен
       tags:
       - Magnit Market API - Цены
@@ -1122,6 +1145,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:prices
+        - mm:b2b:all
       summary: Получение данных по ценам
       tags:
       - Magnit Market API - Цены
@@ -1159,6 +1185,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:products
+        - mm:b2b:all
       summary: Получение списка СКУ с основной информацией
       tags:
       - Magnit Market API - Товары
@@ -1195,7 +1224,10 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
-      summary: Архивация SKU
+        scopes:
+        - mm:b2b:products
+        - mm:b2b:all
+      summary: Архивация СКУ
       tags:
       - Magnit Market API - Товары
   /seller/v1/products/sku/shops/{shop_id}/sku/delete:
@@ -1231,6 +1263,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:products
+        - mm:b2b:all
       summary: Удаление продукта
       tags:
       - Magnit Market API - Товары
@@ -1267,6 +1302,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:products
+        - mm:b2b:all
       summary: Разархивация СКУ
       tags:
       - Magnit Market API - Товары
@@ -1291,6 +1329,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:stocks
+        - mm:b2b:all
       summary: Обновление остатков
       tags:
       - Magnit Market API - Остатки
@@ -1319,6 +1360,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:stocks
+        - mm:b2b:all
       summary: Получение информации об остатках
       tags:
       - Magnit Market API - Остатки
@@ -1327,7 +1371,8 @@ paths:
       description: REST эндпоинт для получения статуса задачи создания СКУ
       operationId: getTaskStatus
       parameters:
-      - in: path
+      - description: Идентификатор задачи создания СКУ
+        in: path
         name: task_id
         required: true
         schema:
@@ -1347,6 +1392,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:products
+        - mm:b2b:all
       summary: Получение статуса задачи создания СКУ
       tags:
       - Magnit Market API - Товары
@@ -1371,6 +1419,9 @@ paths:
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
       - apiKeyAuth: []
+        scopes:
+        - mm:b2b:shops
+        - mm:b2b:all
       summary: Получение списка магазинов
       tags:
       - Magnit Market API - Магазины
@@ -1406,7 +1457,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/orders/list:
     post:
       operationId: ordersListMarket
@@ -1437,7 +1491,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/orders/cancel-items:
     post:
       operationId: ordersCancelItemsMarket
@@ -1470,7 +1527,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/orders/cancel:
     post:
       operationId: ordersCancelMarket
@@ -1503,7 +1563,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/orders/complete:
     post:
       operationId: ordersCompleteMarket
@@ -1535,7 +1598,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/orders/parcels:
     post:
       operationId: ordersParcelsMarket
@@ -1567,7 +1633,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/parcels/list:
     post:
       operationId: parcelsListMarket
@@ -1597,7 +1666,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/parcels/set-marking:
     post:
       operationId: parcelsMarkingMarket
@@ -1634,7 +1706,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/parcels/get-labels:
     post:
       operationId: parcelsGetLabelsMarket
@@ -1674,7 +1749,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/parcels/cancel:
     post:
       operationId: parcelsCancelMarket
@@ -1707,7 +1785,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/parcels/create:
     post:
       operationId: parcelsCreateMarket
@@ -1737,7 +1818,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/parcels/unpack:
     post:
       operationId: parcelsUnpackMarket
@@ -1771,7 +1855,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/shipments/list:
     post:
       operationId: shipmentsListMarket
@@ -1801,7 +1888,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/shipments/add-parcels:
     post:
       operationId: shipmentsAddParcelsMarket
@@ -1832,7 +1922,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/shipments/remove-parcels:
     post:
       operationId: shipmentsRemoveParcelsMarket
@@ -1863,7 +1956,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/shipments/confirm:
     post:
       operationId: shipmentsConfirmMarket
@@ -1894,7 +1990,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/shipments/cancel:
     post:
       operationId: shipmentsCancelMarket
@@ -1926,7 +2025,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   /seller/v1/shipments/get-documents:
     post:
       operationId: shipmentsGetDocumentsMarket
@@ -1966,7 +2068,10 @@ paths:
         '500':
           $ref: '#/components/responses/Marketplace500'
       security:
-        - apiKeyAuth: []
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:orders-processing
+        - mm:b2b:all
   #magnit-market-seller-api-end
 components:
   securitySchemes:
@@ -4312,8 +4417,8 @@ components:
           type: integer
           format: int64
           description: "Идентификатор записи, с которого начинать чтение. Для полу\
-            чения следующей страницы используйте максимальный sku_id из предыдущег\
-            о ответа"
+            чения следующей страницы используйте последний sku_id из предыдущего о\
+            твета"
           example: 0
           minimum: 0
         limit:
@@ -4529,10 +4634,10 @@ components:
       properties:
         seller_sku_ids:
           type: array
-          description: Список внешних (селлерских) идентификаторов СКУ
+          description: Список идентификаторов СКУ в системе селлера
           items:
             type: string
-            description: Список внешних (селлерских) идентификаторов СКУ
+            description: Список идентификаторов СКУ в системе селлера
           maxItems: 1000
           minItems: 0
         sku_ids:
@@ -4886,7 +4991,7 @@ components:
       description: Запрос на получение списка SKU
       properties:
         filter:
-          $ref: "#/components/schemas/SkuFilter"
+          $ref: "#/components/schemas/SkuRequestFilter"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:
@@ -5048,6 +5153,7 @@ components:
       - height
       - length
       - price
+      - product_filters_list
       - product_images
       - seller_sku_id
       - shop_id
@@ -5057,6 +5163,18 @@ components:
       - vat
       - weight
       - width
+    SkuRequestFilter:
+      type: object
+      description: Фильтр для поиска SKU
+      properties:
+        category_id:
+          type: integer
+          format: int32
+          description: Идентификатор категории
+        shop_id:
+          type: integer
+          format: int32
+          description: Идентификатор магазина
     SkuWarning:
       type: object
       description: Расшифровка по незначительным ошибкам
