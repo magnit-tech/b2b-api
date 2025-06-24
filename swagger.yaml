@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.27
+  version: 0.1.28
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -578,7 +578,7 @@ paths:
         - in: query
           name: last_known_id
           description: |
-            Идентификатор последнего события, обработанного клиентом. 
+            Идентификатор последнего события, обработанного клиентом.
             Если не передан, то будут выданы изменения, начиная с самого первого.
           required: false
           schema:
@@ -706,6 +706,121 @@ paths:
                 $ref: "#/components/schemas/response.Conflict"
         "500":
           description: "Internal Server Error"
+
+  /v1/partners/{partner_id}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - Last Mile
+      operationId: GetPartner
+      summary: Получение партнера
+      description: "Получение партнера по его partner_id"
+      parameters:
+        - $ref: "#/components/parameters/PartnerID"
+        - name: nomerge
+          in: query
+          description: "Флаг, определяющий получение смерженного конфига"
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          $ref: "#/components/responses/Partner"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - Last Mile
+      operationId: UpdatePartner
+      summary: Обновление конфига партнера
+      description: "Обновить конфиг партнера по его partner_id"
+      parameters:
+        - $ref: "#/components/parameters/PartnerID"
+      requestBody:
+        $ref: "#/components/requestBodies/UpdatePartnerRequestBody"
+      responses:
+        "200":
+          description: "OK"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+
+  /v1/partners/{partner_id}/logzones/config:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - Last Mile
+      operationId: GetPartnerLogzoneConfig
+      summary: Получение конфига партнера в логзоне
+      description: "Получить конфиг партнера в логзоне по его partner_id"
+      parameters:
+        - $ref: "#/components/parameters/PartnerID"
+        - $ref: "#/components/parameters/query.LogzoneConfigQueryFilter"
+        - $ref: "#/components/parameters/query.Stype"
+      responses:
+        "200":
+          $ref: "#/components/responses/Config"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - Last Mile
+      operationId: UpdatePartnerLogzoneConfig
+      summary: Обновление конфига партнера в логзоне
+      description: "Обновить конфиг партнера в логзоне по его partner_id"
+      parameters:
+        - $ref: "#/components/parameters/PartnerID"
+      requestBody:
+        $ref: "#/components/requestBodies/UpdatePartnerLogzoneConfigV1"
+      responses:
+        "200":
+          $ref: "#/components/responses/Config"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+
+  /v1/rates/replace:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - Last Mile
+      operationId: ReplaceRates
+      summary: Метод замены тарифов
+      description: "Позволяет заменить текущие тарифы на новые"
+      requestBody:
+        $ref: "#/components/requestBodies/RatesReplace"
+      responses:
+        '200':
+          $ref: "#/components/responses/OK"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '404':
+          $ref: "#/components/responses/NotFound"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
 
   /v1/magnit-post/pickup-points:
     get:
@@ -1502,7 +1617,7 @@ paths:
         - Magnit Market API - Задания на сборку
       summary: Отмена части товаров
       description: |
-        Отменяемый товар не должен быть распределен по посылкам. 
+        Отменяемый товар не должен быть распределен по посылкам.
 
         ⚠️ Это действие нельзя отменить.
       requestBody:
@@ -1967,7 +2082,7 @@ paths:
         - Magnit Market API - Отгрузка посылок
       summary: Подтвердить отгрузку
       description: |
-        Завершить формирование отгрузки. 
+        Завершить формирование отгрузки.
       requestBody:
         content:
           application/json:
@@ -2002,7 +2117,7 @@ paths:
       summary: Отменить отгрузку
       description: >
         Отменяет отгрузку. Отменить отгрузку можно только на статусе
-        `CONFIRMED`  
+        `CONFIRMED`
       requestBody:
         content:
           application/json:
@@ -2125,6 +2240,34 @@ components:
         enum:
           - application/json
           - application/pdf
+    PartnerID:
+      in: path
+      name: partner_id
+      description: "Идентификатор партнера"
+      required: true
+      schema:
+        type: string
+        format: uuid
+        x-go-type: uuid.UUID
+        x-go-type-import:
+          path: github.com/gofrs/uuid/v5
+    query.Stype:
+      description: "Тип настроек в логзонах"
+      in: query
+      name: stype
+      style: form
+      explode: true
+      schema:
+        $ref: "#/components/schemas/SettingsType"
+    query.LogzoneConfigQueryFilter:
+      description: "Критерий выборки логзоны"
+      in: query
+      name: by
+      style: form
+      required: true
+      explode: true
+      schema:
+        $ref: "#/components/schemas/LogzoneConfigQueryFilter"
 
   schemas:
     StoresPricesItemsV1:
@@ -3319,20 +3462,20 @@ components:
     ClaimStatus:
       type: string
       description: |
-        Статус доставки. Статусы доставки могут добавляться со временем. Нужно учитывать при интеграции. 
+        Статус доставки. Статусы доставки могут добавляться со временем. Нужно учитывать при интеграции.
         Промежуточные статусы:
           created - заказ создан, обработка еще не началась.
           estimating - рассчитывается стоимость доставки и проводится валидация.
           ready_for_approval - ожидается подтверждение заявки заказчиком.
           accepted - валидация завершена.
-          performer_searching - выполняется поиск курьера. 
+          performer_searching - выполняется поиск курьера.
             Если курьер был ранее назначен, но отказался от заказа, то заказ снова попадает в этот статус после performer_found.
-          performer_found - курьер назначен. 
+          performer_found - курьер назначен.
           pickup_arrived - курьер прибыл в точку А для получения заказа.
           pickuped - заказ получен. курьер движется в точку Б.
           delivery_arrived - курьер прибыл в точку Б.
           returning - курьер едет обратно в точку А для возврата товара
-          return_arrived - курьер прибыл в точку А для возврата товара 
+          return_arrived - курьер прибыл в точку А для возврата товара
 
         Терминальные статусы:
           delivery_finished - курьер передал заказ клиенту. Доставка выполнена.
@@ -3477,7 +3620,7 @@ components:
 
     Estimation:
       description: |
-        Результат оценки расстояния и стоимости доставки, а также ожидаемое времени доставки. 
+        Результат оценки расстояния и стоимости доставки, а также ожидаемое времени доставки.
         Заполняется только после расчета стоимости.
       type: object
       required:
@@ -3652,11 +3795,11 @@ components:
       type: string
       description: |
         Код причины отмены сервисом:
-        performer_not_found - не удалось найти курьера за отведенное время.           
-        out_of_delivery_zone - заказ за пределами зоны доставки.           
-        out_of_working_time - заказ создан в нерабочее время.            
-        too_high_delivery_distance - слишком большое расстояние между точкой пикапа и дроп офф.        
-        too_heavy_cargo - слишком тяжелый заказ.       
+        performer_not_found - не удалось найти курьера за отведенное время.
+        out_of_delivery_zone - заказ за пределами зоны доставки.
+        out_of_working_time - заказ создан в нерабочее время.
+        too_high_delivery_distance - слишком большое расстояние между точкой пикапа и дроп офф.
+        too_heavy_cargo - слишком тяжелый заказ.
         other - другая причина со свободным описанием.
       enum:
         - performer_not_found
@@ -3685,11 +3828,11 @@ components:
       type: string
       description: |
         Код причины отмены партнером:
-        long_wait_courier - долгое ожидание курьера 	 
-        cancelled_by_customer - клиент передумал 	
-        courier_without_inventory - курьер без сумки	
-        customer_not_respond - клиента нет дома	
-        long_wait_order - долгое ожидание заказа	
+        long_wait_courier - долгое ожидание курьера
+        cancelled_by_customer - клиент передумал
+        courier_without_inventory - курьер без сумки
+        customer_not_respond - клиента нет дома
+        long_wait_order - долгое ожидание заказа
         pickup_point_closed - точка выдачи заказа закрыта
       enum:
         - long_wait_courier
@@ -3850,6 +3993,99 @@ components:
             - error
           x-oapi-codegen-extra-tags:
             validate: required
+
+    Partner:
+      type: object
+      required:
+        - partner_id
+        - name
+      properties:
+        partner_id:
+          description: "Идентификатор партнера"
+          type: string
+          format: uuid
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/gofrs/uuid/v5
+        name:
+          description: "Наименование партнера"
+          type: string
+        email:
+          type: string
+          description: "Email партнера"
+        parent:
+          type: string
+          format: uuid
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/gofrs/uuid/v5
+        display_name:
+          type: string
+          description: "Название партнера для использования в качестве названия магазина в РМ Логиста"
+        config:
+          $ref: "#/components/schemas/Config"
+
+    Config:
+      type: object
+
+    SettingsType:
+      type: string
+      default: lm
+      enum:
+        - ds
+        - lm
+      x-oapi-codegen-extra-tags:
+        validate: omitempty,oneof=lm ds
+
+    LogzoneConfigQueryFilter:
+      type: object
+      additionalProperties: false
+      oneOf:
+        - required: [ name ]
+        - required: [ external_id ]
+        - required: [ point ]
+      properties:
+        name:
+          type: string
+        external_id:
+          type: string
+        point:
+          $ref: "#/components/schemas/Point"
+
+    Point:
+      type: object
+      required:
+        - lat
+        - lon
+      properties:
+        lat:
+          type: number
+          x-go-type: float64
+        lon:
+          type: number
+          x-go-type: float64
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          $ref: "#/components/schemas/ErrorCodes"
+        message:
+          type: string
+
+    ErrorCodes:
+      description: Коды ошибок
+      type: string
+      enum:
+        - NOT_FOUND
+        - BAD_REQUEST
+        - VALIDATION_ERROR
+        - INTERNAL_SERVER_ERROR
+        - UNPROCESSABLE_ENTITY
+        - CONFLICT
 
     #last-mile-end
 
@@ -5375,7 +5611,7 @@ components:
         next_page_token:
           type: string
           description: |
-            Токен для получения следующей страницы. 
+            Токен для получения следующей страницы.
             Его необходимо передать в поле `page_token` в следующем запросе.
     MarketplaceOrderIdType:
       type: string
@@ -5662,7 +5898,7 @@ components:
     MarketplaceParcelStatus:
       type: string
       description: |
-        Статус посылки  
+        Статус посылки
         * `NEW`                  - Новая
         * `READY_TO_SHIPMENT`    - Готов к отгрузке
         * `AWAITING_DELIVERY`    - Передается в доставку
@@ -5855,7 +6091,7 @@ components:
     MarketplaceShipmentStatus:
       type: string
       description: |
-        Статус отгрузки 
+        Статус отгрузки
         * `DRAFT`                 — Формируется
         * `CONFIRMED`             — Подтверждена
         * `ACCEPTANCE_STARTED`    — Начата приемка отгрузки
@@ -6031,7 +6267,7 @@ components:
           type: string
           description: |
             Тип запрашиваемого документа:
-                         
+
             * `act_of_acceptance` — акт приема-передачи
             * `act_of_mismatch` — акт о расхождениях
             * `delivery_note` — лист отгрузки
@@ -6131,6 +6367,92 @@ components:
                 description: "Тип доступа"
                 example: client_credentials
                 default: client_credentials
+
+    UpdatePartnerLogzoneConfigV1:
+      description: 'Обновление настроек LM в логзонах'
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties:
+              type: object
+
+    UpdatePartnerRequestBody:
+      description: Запрос на обновление партнера
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                description: "Наименование партнера"
+                type: string
+              email:
+                type: string
+                description: "Email партнера"
+                x-oapi-codegen-extra-tags:
+                  validate: omitempty,email
+              parent:
+                type: string
+                format: uuid
+                x-go-type: uuid.UUID
+                x-go-type-import:
+                  path: github.com/gofrs/uuid/v5
+              config:
+                type: object
+
+    RatesReplace:
+      required: true
+      description: "Запрос на замену тарифов"
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - flow
+              - rates
+            properties:
+              partner_id:
+                type: string
+                description: "Идентификатор партнера, к которому привязываются тарифы"
+                example: "12345687890"
+                x-oapi-codegen-extra-tags:
+                  form: partner_id
+              flow:
+                type: string
+                description: "Основной флоу партнера, к которому привязан тариф"
+                example: "last_mile"
+                x-oapi-codegen-extra-tags:
+                  validate: required,oneof=last_mile
+                  form: flow
+              sub_flow:
+                type: string
+                description: "Ответвление от основного флоу партнера, к которому привязан тариф"
+                example: "sub_flow_example"
+                x-oapi-codegen-extra-tags:
+                  form: sub_flow
+              rates:
+                type: string
+                description: "Файл тарифов"
+                format: binary
+              started_at:
+                type: string
+                format: date-time
+                description: "Дата и время начала действия тарифа"
+                example: "2025-11-11T12:22:11+03:00"
+                x-oapi-codegen-extra-tags:
+                  validate: omitempty,gt
+                  form: started_at
+              finished_at:
+                type: string
+                format: date-time
+                description: "Дата и время окончания действия тарифа"
+                example: "2026-11-11T12:22:11+03:00"
+                x-oapi-codegen-extra-tags:
+                  validate: omitempty,gtefield=StartedAt
+                  form: finished_at
 
   responses:
     OrderResponse:
@@ -6307,3 +6629,51 @@ components:
             allOf:
               - $ref: '#/components/schemas/MarketplaceApiErrorResponse'
     #magnit-market-seller-api-responses-end
+    Partner:
+      description: Данные партнера
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Partner"
+
+    ErrorResponse:
+      description: Ответ с ошибками клиента или сервера
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    Config:
+      description: Конфиг партнера
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Config"
+
+    OK:
+      description: "Тарифы успешно заменены"
+      content: { }
+    BadRequest:
+      description: "Ошибка валидации"
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Error'
+    NotFound:
+      description: "Передан хотя бы 1 несуществующий фильтр-код"
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: "Внутренняя ошибка сервера"
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Error'
