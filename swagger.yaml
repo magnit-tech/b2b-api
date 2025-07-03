@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.28
+  version: 0.1.29
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -1421,6 +1421,44 @@ paths:
         - mm:b2b:products
         - mm:b2b:all
       summary: Разархивация СКУ
+      tags:
+      - Magnit Market API - Товары
+  /seller/v1/products/sku/shops/{shop_id}/sku/update:
+    post:
+      description: REST эндпоинт для обновления списка СКУ
+      operationId: updateSku
+      parameters:
+      - in: path
+        name: shop_id
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSkuRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CreateSkuResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+          description: Пример ошибочных ответов для всех http-статусов (не 2хх)
+      security:
+      - apiKeyAuth: []
+        scopes:
+        - mm:b2b:products
+        - mm:b2b:all
+      summary: Обновление СКУ
       tags:
       - Magnit Market API - Товары
   /seller/v1/products/sku/stocks:
@@ -4468,6 +4506,22 @@ components:
       - id
       - title
       - value
+    CreateSkuFilter:
+      type: object
+      description: Фильтры SKU
+      properties:
+        characteristic_id:
+          type: integer
+          format: int64
+          description: Идентификатор справочника
+        characteristic_values:
+          type: array
+          description: Массив значений фильтра
+          items:
+            $ref: "#/components/schemas/SkuFilterValue"
+      required:
+      - characteristic_id
+      - characteristic_values
     CreateSkuRequest:
       type: object
       properties:
@@ -5010,22 +5064,48 @@ components:
       - required
       - system_characteristic
       - type
+    SkuDimensions:
+      type: object
+      description: ВГХ SKU
+      properties:
+        height:
+          type: integer
+          format: int32
+          description: Высота в мм
+        length:
+          type: integer
+          format: int32
+          description: Длина в мм
+        weight:
+          type: integer
+          format: int32
+          description: Вес в граммах
+        width:
+          type: integer
+          format: int32
+          description: Ширина в мм
+      required:
+      - height
+      - length
+      - weight
+      - width
     SkuFilter:
       type: object
-      description: Фильтры SKU
+      description: Фильтр SKU
       properties:
-        characteristic_id:
-          type: integer
-          format: int64
-          description: Идентификатор справочника
-        characteristic_values:
+        seller_sku_ids:
           type: array
-          description: Массив значений фильтра
+          description: Список идентификаторов СКУ в системе селлера
           items:
-            $ref: "#/components/schemas/SkuFilterValue"
-      required:
-      - characteristic_id
-      - characteristic_values
+            type: string
+            description: Список идентификаторов СКУ в системе селлера
+        sku_ids:
+          type: array
+          description: Список внутренних идентификаторов СКУ
+          items:
+            type: integer
+            format: int64
+            description: Список внутренних идентификаторов СКУ
     SkuFilterValue:
       type: object
       description: Массив значений фильтра
@@ -5359,7 +5439,7 @@ components:
           type: array
           description: Фильтры SKU
           items:
-            $ref: "#/components/schemas/SkuFilter"
+            $ref: "#/components/schemas/CreateSkuFilter"
         sku_group_id:
           type: string
           description: "Идентификатор группы SKU. Укажите одинаковые значения для\
@@ -5368,10 +5448,11 @@ components:
             тимы специальные символы .,\\/()[]-=_."
         title:
           type: string
-          description: "Название, единое для карточки товара"
+          description: "Название, единое для карточки товара. Ограничение: до 90 с\
+            имволов"
         vat:
           type: string
-          description: НДС
+          description: "НДС. Возможные значения: 0, 5, 7, 10, 20, \"Не облагается\""
         video:
           $ref: "#/components/schemas/ProductVisualEffects"
         weight:
@@ -5545,6 +5626,52 @@ components:
           description: Список предупреждений
           items:
             $ref: "#/components/schemas/SkuWarning"
+    UpdateSkuDto:
+      type: object
+      properties:
+        barcode:
+          type: integer
+          format: int64
+          description: Штрихкод SKU
+        dimensions:
+          $ref: "#/components/schemas/SkuDimensions"
+        seller_sku_id:
+          type: string
+          description: "Уникальный идентификатор SKU в системе селлера. Длина: до\
+            \ 80 символов. Допустимые символы: латиница (a-zA-Z), кириллица (а-яА\
+            -Я, кроме ёЁ), цифры (0-9), некоторые специальные символы .,\\/()[]-=_."
+        sku_filter_list:
+          type: array
+          description: Фильтры SKU
+          items:
+            $ref: "#/components/schemas/UpdateSkuFilter"
+      required:
+      - seller_sku_id
+    UpdateSkuFilter:
+      type: object
+      description: Фильтры SKU
+      properties:
+        characteristic_id:
+          type: integer
+          format: int64
+          description: Идентификатор справочника
+        characteristic_values:
+          type: array
+          description: Массив значений фильтра
+          items:
+            type: string
+            description: Массив значений фильтра
+          uniqueItems: true
+      required:
+      - characteristic_id
+      - characteristic_values
+    UpdateSkuRequest:
+      type: object
+      properties:
+        sku_list:
+          type: array
+          items:
+            $ref: "#/components/schemas/UpdateSkuDto"
     #magnit-market-seller-api-schema-lms
     MarketplacePaginationRequest:
       type: object
