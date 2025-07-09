@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.29
+  version: 0.1.30
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -1018,6 +1018,34 @@ paths:
                 message: Authorization Required
       tags:
         - Magnit Post
+  /v2/magnit-post/orders/estimate:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - Magnit Post
+      operationId: estimateOrder
+      summary: Расчет срока и стоимости доставки
+      description: Метод позволяет оценить время и стоимость доставки заказа.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EstimateOrderRequestBody"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/EstimateOrderResponseBody"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          description: "Unauthorized"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
   #magnit-market-seller-api-begin
   #magnit-market-seller-api-goods
   /seller/v1/categories:
@@ -4446,6 +4474,50 @@ components:
           type: integer
           format: int32
           example: 100
+    EstimateOrderRequestBody:
+      type: object
+      required:
+        - pup_region
+        - pup_city
+        - city_from
+      properties:
+        pup_region:
+          type: string
+          description: "Регион ПВЗ"
+        pup_city:
+          type: string
+          description: "Город ПВЗ"
+        pup_key:
+          type: string
+          description: "Идентификатор ПВЗ"
+        pup_name:
+          type: string
+          description: "Название ПВЗ"
+        city_from:
+          type: string
+          description: "Город отправки"
+    EstimateOrderResponseBody:
+      type: object
+      required:
+        - from
+        - to
+        - cost
+      properties:
+        from:
+          type: integer
+          minimum: 0
+          description: "Минимальный срок доставки в днях"
+          x-go-type: int
+        to:
+          type: integer
+          minimum: 0
+          description: "Максимальный срок доставки в днях"
+          x-go-type: int
+        cost:
+          type: integer
+          x-go-type: int
+          description: "Стоимость доставки в копейках"
+          example: 25000
     #magnit-post-end
     #magnit-market-seller-api-schema-begin
     #magnit-market-seller-api-schema-goods
