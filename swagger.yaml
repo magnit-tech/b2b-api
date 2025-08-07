@@ -38,7 +38,6 @@ tags:
   - name: Magnit Market API - Отгрузка посылок
     description: Партнерская интеграция с Magnit Market по модели FBS. Отгрузка посылок
 
-
 paths:
   /v1/oauth/token:
     post:
@@ -813,13 +812,13 @@ paths:
       requestBody:
         $ref: "#/components/requestBodies/RatesReplace"
       responses:
-        '200':
+        "200":
           $ref: "#/components/responses/OK"
-        '400':
+        "400":
           $ref: "#/components/responses/BadRequest"
-        '404':
+        "404":
           $ref: "#/components/responses/NotFound"
-        '500':
+        "500":
           $ref: "#/components/responses/InternalServerError"
 
   /v1/magnit-post/pickup-points:
@@ -832,9 +831,9 @@ paths:
       parameters:
         - $ref: "#/components/parameters/pageNumber"
         - $ref: "#/components/parameters/pageSize"
-        - $ref: '#/components/parameters/pickupPointKey'
-        - $ref: '#/components/parameters/region'
-        - $ref: '#/components/parameters/city'
+        - $ref: "#/components/parameters/pickupPointKey"
+        - $ref: "#/components/parameters/region"
+        - $ref: "#/components/parameters/city"
       responses:
         "200":
           description: Список пунктов выдачи заказов
@@ -1040,7 +1039,7 @@ paths:
         "200":
           description: "OK"
           content:
-            'application/json':
+            "application/json":
               schema:
                 $ref: "#/components/schemas/EstimateOrderResponseBody"
         "400":
@@ -1071,10 +1070,10 @@ paths:
                 $ref: "#/components/schemas/GenericResponse"
           description: Пример ошибочных ответов для всех http-статусов (не 2хх)
       security:
-      - apiKeyAuth: []
-        scopes:
-        - mm:b2b:categories
-        - mm:b2b:all
+        - apiKeyAuth: []
+          scopes:
+            - mm:b2b:categories
+            - mm:b2b:all
       summary: Получение списка категорий
       tags:
       - Magnit Market API - Категории
@@ -2306,21 +2305,21 @@ components:
         type: string
         example: "63933"
     region:
-        name: region
-        in: query
-        description: Регион ПВЗ
-        required: false
-        schema:
-          type: string
-          example: "Татарстан"
+      name: region
+      in: query
+      description: Регион ПВЗ
+      required: false
+      schema:
+        type: string
+        example: "Татарстан"
     city:
-        name: city
-        in: query
-        description: Город ПВЗ
-        required: false
-        schema:
-          type: string
-          example: "Казань"
+      name: city
+      in: query
+      description: Город ПВЗ
+      required: false
+      schema:
+        type: string
+        example: "Казань"
     MarketplaceDocumentAccept:
       name: Accept
       in: header
@@ -4382,7 +4381,6 @@ components:
           IN_COURIER_DELIVERY,
           ISSUED,
           DESTROYED,
-          SENT_TO_SENDER,
           ACCEPTED_AT_WAREHOUSE,
           REMOVED,
           WAITING_RETURN,
@@ -4392,7 +4390,6 @@ components:
           DEFECTED,
           RETURN_ACCEPTED_AT_WAREHOUSE,
           RETURNED_TO_PROVIDER,
-          CANCELED;,
         ]
       example: CREATED
     MagnitPostPayment:
@@ -4530,7 +4527,18 @@ components:
           description: "Название ПВЗ"
         city_from:
           type: string
-          description: "Город отправки"
+          description: |
+            Город отправки. Доступные значения:
+            - Москва
+            - Казань
+            - Воронеж
+            - Магнитогорск
+            - Оренбург
+            - Саратов
+            - Регионы
+
+            Для городов МО используется значение "Москва", для всех остальных не из списка - "Регионы"
+
     EstimateOrderResponseBody:
       type: object
       required:
@@ -6603,7 +6611,7 @@ components:
                 default: client_credentials
 
     UpdatePartnerLogzoneConfigV1:
-      description: 'Обновление настроек LM в логзонах'
+      description: "Обновление настроек LM в логзонах"
       required: true
       content:
         application/json:
