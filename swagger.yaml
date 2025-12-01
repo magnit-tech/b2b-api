@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.33
+  version: 0.1.34
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -5837,6 +5837,11 @@ components:
             - from
         - required:
             - to
+    MarketplaceWarehouseIdType:
+      type: string
+      description: Идентификатор склада
+      format: uuid
+      example: 5f6f0334-0759-4e04-af31-8c5a4c4fa7b4
     MarketplaceOrdersUnprocessedRequest:
       type: object
       required:
@@ -5849,6 +5854,13 @@ components:
               $ref: '#/components/schemas/MarketplaceSortDirection'
             cutoff_time:
               $ref: '#/components/schemas/MarketplaceFilterDateTime'
+            warehouse_id:
+              type: array
+              description: Фильтр по идентификаторам складов.
+              minItems: 1
+              maxItems: 50
+              items:
+                $ref: '#/components/schemas/MarketplaceWarehouseIdType'
     MarketplacePaginationResponse:
       type: object
       properties:
@@ -5884,13 +5896,20 @@ components:
       required:
         - old_price
         - price
+        - payment_price
       properties:
         old_price:
-          description: Старая цена товара
+          description: >-
+            Старая цена товара. На текущий момент совпадает со значение в поле
+            price.
           type: number
           example: 30
         price:
-          description: Цена единицы товара
+          description: Цена единицы товара на витрине.
+          type: number
+          example: 30
+        payment_price:
+          description: 'Цена единицы товара, которую заплатил покупатель.'
           type: number
           example: 30
     MarketplaceOrderItem:
@@ -5921,14 +5940,23 @@ components:
       type: object
       required:
         - order_id
+        - warehouse_id
         - status
         - cutoff_time
+        - created_at
         - items
       properties:
         order_id:
           $ref: '#/components/schemas/MarketplaceOrderIdType'
+        warehouse_id:
+          $ref: '#/components/schemas/MarketplaceWarehouseIdType'
         status:
           $ref: '#/components/schemas/MarketplaceOrderStatus'
+        created_at:
+          description: |
+            Дата и время создания заказа
+          allOf:
+            - $ref: '#/components/schemas/MarketplaceDateTime'
         cutoff_time:
           description: >
             Дата и время, до которого необходимо собрать товары в посылки и
@@ -5988,6 +6016,13 @@ components:
               maxItems: 50
               items:
                 $ref: '#/components/schemas/MarketplaceOrderIdType'
+            warehouse_id:
+              type: array
+              description: Фильтр по идентификаторам складов.
+              minItems: 1
+              maxItems: 50
+              items:
+                $ref: '#/components/schemas/MarketplaceWarehouseIdType'
             created_at:
               $ref: '#/components/schemas/MarketplaceFilterDateTime'
             status:
@@ -6363,6 +6398,13 @@ components:
               maxItems: 50
               items:
                 $ref: '#/components/schemas/MarketplaceShipmentIdType'
+            warehouse_id:
+              type: array
+              description: Фильтр по идентификаторам складов.
+              minItems: 1
+              maxItems: 50
+              items:
+                $ref: '#/components/schemas/MarketplaceWarehouseIdType'
             confirmed_at:
               $ref: '#/components/schemas/MarketplaceFilterDateTime'
             status:
@@ -6371,9 +6413,12 @@ components:
       type: object
       required:
         - shipment_id
+        - warehouse_id
       properties:
         shipment_id:
           $ref: '#/components/schemas/MarketplaceShipmentIdType'
+        warehouse_id:
+          $ref: '#/components/schemas/MarketplaceWarehouseIdType'
         created_at:
           type: string
           format: date-time
@@ -6415,9 +6460,13 @@ components:
             $ref: '#/components/schemas/MarketplaceParcelIdType'
     MarketplaceShipmentAddParcelsResponse:
       type: object
+      required:
+        - warehouse_id
       properties:
         shipment_id:
           $ref: '#/components/schemas/MarketplaceShipmentIdType'
+        warehouse_id:
+          $ref: '#/components/schemas/MarketplaceWarehouseIdType'
         parcels:
           type: array
           items:
@@ -6452,9 +6501,18 @@ components:
                 type: string
     MarketplaceShipmentsConfirmRequest:
       type: object
+      description: >-
+        shipment_id либо warehouse_id нужно обязательно передавать если используется несколько складов
       required:
         - delivery_date
+      anyOf:
+        - required: ['shipment_id']
+        - required: ['warehouse_id']
       properties:
+        shipment_id:
+          $ref: '#/components/schemas/MarketplaceShipmentIdType'
+        warehouse_id:
+          $ref: '#/components/schemas/MarketplaceWarehouseIdType'
         delivery_date:
           type: string
           description: |
@@ -6473,9 +6531,13 @@ components:
           type: string
     MarketplaceShipmentsConfirmResponse:
       type: object
+      required:
+        - warehouse_id
       properties:
         shipment_id:
           $ref: '#/components/schemas/MarketplaceShipmentIdType'
+        warehouse_id:
+          $ref: '#/components/schemas/MarketplaceWarehouseIdType'
         parcels:
           type: array
           items:
@@ -6511,7 +6573,7 @@ components:
           type: string
           description: |
             Тип запрашиваемого документа:
-
+            
             * `act_of_acceptance` — акт приема-передачи
             * `act_of_mismatch` — акт о расхождениях
             * `delivery_note` — лист отгрузки
