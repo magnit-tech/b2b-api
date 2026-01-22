@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Magnit B2B Platform API
   description: Описание API для интеграции с Магнит. События от системы Магнит реализуются на стороне Партнера, остальные методы реализованы на стороне Магнит. Сервис Партнера выступает в роли клиента. Общение происходит на основании pull-push-модели, т.е. сервис Партнера как клиент запрашивает информацию о ресурсе, может создавать/обновлять ресурсы, если это необходимо, получать события от системы Магнит. AuthRequest.client_id и AuthRequest.client_secret выдаются по запросу
-  version: 0.1.35
+  version: 0.1.36
 servers:
   - url: https://b2b-api.magnit.ru/api
     description: Основной стенд интеграции.
@@ -4644,7 +4644,9 @@ components:
       properties:
         send_to_photo_studio:
           type: boolean
+          default: false
           description: Флаг управления отправкой товара на фотостудию
+          example: false
         sku_list:
           type: array
           description: Массив со списком SKU
@@ -4663,15 +4665,15 @@ components:
           example: 1234
     CustomSkuCharacteristic:
       type: object
-      description: Пользовательские характеристики sku для объединения SKU в одну
-        карточку товара
       properties:
         characteristic_title:
           type: string
-          description: Название характеристики
+          description: "Название характеристики. Ограничение: до 255 символов"
+          maxLength: 255
         characteristic_value:
           type: string
-          description: Значение характеристики
+          description: "Значение характеристики. Ограничение: до 255 символов"
+          maxLength: 255
       required:
       - characteristic_title
       - characteristic_value
@@ -5467,10 +5469,11 @@ components:
           description: "Валюта цен. Возможные значения: RUB — российский рубль"
         custom_characteristic_values_skus:
           type: array
-          description: Пользовательские характеристики sku для объединения SKU в одну
-            карточку товара
+          description: "Пользовательские характеристики sku для объединения SKU в\
+            \ одну карточку товара. Ограничение: до 3 характеристик"
           items:
             $ref: "#/components/schemas/CustomSkuCharacteristic"
+          maxItems: 3
         defined_characteristic_list:
           type: array
           description: Предопределенные характеристики
@@ -5483,10 +5486,9 @@ components:
           description: "Глубина в мм (deprecated, используйте поле length)"
         description:
           type: string
-          description: "Описание, единое для карточки товара. Ограничение: до 3000\
+          description: "Описание, единое для карточки товара. Ограничение: до 6000\
             \ символов"
-          maxLength: 3000
-          minLength: 0
+          maxLength: 6000
         height:
           type: integer
           format: int32
@@ -5514,12 +5516,10 @@ components:
           description: Цена продажи (возможна скидка)
         product_attributes:
           type: array
-          description: Свойства товара
+          description: "Свойства товара. Ограничение: до 10 свойств"
           items:
             type: string
-            description: Свойства товара
           maxItems: 10
-          minItems: 0
         product_filters_list:
           type: array
           description: "Характеристики, относящиеся к Продукту"
@@ -5531,6 +5531,8 @@ components:
             в; может быть несколько фото (до 10 штук)"
           items:
             $ref: "#/components/schemas/ProductVisualEffects"
+          maxItems: 10
+          minItems: 1
         seller_sku_id:
           type: string
           description: "Уникальный идентификатор SKU в системе селлера. Длина: до\
@@ -5543,9 +5545,8 @@ components:
         short_description:
           type: string
           description: "Краткое описание, единое для карточки товара. Ограничение\
-            : до 300 символов"
-          maxLength: 300
-          minLength: 0
+            : до 390 символов"
+          maxLength: 390
         size_chart:
           type: string
           description: "Конечный URL файла с размерной сеткой в jpg, png, pdf"
@@ -5564,15 +5565,18 @@ components:
           type: string
           description: "Идентификатор группы SKU. Укажите одинаковые значения для\
             \ всех SKU, которые должны быть объединены в одну карточку товара.Форм\
-            ат: длина не более 80 символов, a-zA-Z0-9, а-яА-Я0-9 (кроме ёЁ), допус\
+            ат: длина не более 50 символов, a-zA-Z0-9, а-яА-Я0-9 (кроме ёЁ), допус\
             тимы специальные символы .,\\/()[]-=_."
+          maxLength: 50
         title:
           type: string
-          description: "Название, единое для карточки товара. Ограничение: до 90 с\
-            имволов"
+          description: "Название, единое для карточки товара. Ограничение: от 3 до\
+            \ 90 символов"
+          maxLength: 90
+          minLength: 3
         vat:
           type: string
-          description: "НДС. Возможные значения: 0, 5, 7, 10, 20, \"Не облагается\""
+          description: "НДС. Возможные значения: 0, 5, 7, 10, 22, \"Не облагается\""
         video:
           $ref: "#/components/schemas/ProductVisualEffects"
         weight:
